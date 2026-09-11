@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Wishboard</title>
+
+<!-- PWA: manifest + theme -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#5B3A4B" />
+<meta name="description" content="Track what you want and what you've bought, in one simple wishlist." />
+
+<!-- Standard / Android / desktop favicons -->
+<link rel="icon" type="image/x-icon" href="icons/favicon.ico" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
+
+<!-- iOS: "Add to Home Screen" -->
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png" />
+<link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Wishboard" />
+
+<!-- macOS Safari 17+: "Add to Dock" reads the same manifest + apple-touch-icon above -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  .wb-root {
+    --paper: #F3EEE4;
+    --ink: #2A2622;
+    --muted: #8a8272;
+    --plum: #5B3A4B;
+    --gold: #C08A28;
+    --sage: #6E8266;
+    --line: #E1D8C4;
+    --card: #FFFDF9;
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding-bottom: 100px;
+    box-sizing: border-box;
+  }
+  .wb-root *, .wb-root *::before, .wb-root *::after { box-sizing: border-box; }
+
+  .wb-header { padding: 26px 20px 0; }
+  .wb-title { font-family: 'Fraunces', serif; font-style: italic; font-weight: 600; font-size: 30px; margin: 0; letter-spacing: -0.01em; }
+  .wb-subtitle { font-size: 13px; color: var(--muted); margin: 5px 0 0; }
+
+  .wb-tabs { display: flex; gap: 6px; margin: 22px 20px 0; }
+  .wb-tab {
+    padding: 10px 14px 12px; border-radius: 12px 12px 0 0; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--line); border-bottom: none; background: #EAE2CE; color: var(--muted);
+    transition: background .15s, color .15s;
+  }
+  .wb-tab .wb-count { margin-left: 6px; font-size: 11.5px; opacity: .65; }
+  .wb-tab.active-wishlist { background: var(--card); color: var(--plum); box-shadow: 0 -3px 0 var(--plum) inset; }
+  .wb-tab.active-purchased { background: var(--card); color: var(--sage); box-shadow: 0 -3px 0 var(--sage) inset; }
+  .wb-tabline { height: 1px; background: var(--line); margin: 0 20px; }
+
+  .wb-grid { column-count: 2; column-gap: 14px; padding: 18px 20px 0; }
+  @media (min-width: 640px) { .wb-grid { column-count: 3; } }
+  @media (min-width: 960px) { .wb-grid { column-count: 4; } }
+
+  .wb-card { break-inside: avoid; margin-bottom: 14px; background: var(--card); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); position: relative; }
+  .wb-imgwrap { position: relative; background: #ECE4D2; }
+  .wb-imgwrap img { width: 100%; display: block; object-fit: cover; }
+  .wb-placeholder { width: 100%; aspect-ratio: 4 / 5; background: linear-gradient(160deg, var(--plum), #7d5468); display: flex; align-items: center; justify-content: center; }
+  .wb-placeholder span { font-family: 'Fraunces', serif; font-size: 46px; color: rgba(255,255,255,.85); }
+
+  .wb-price-tag {
+    position: absolute; bottom: -12px; left: 10px; background: var(--gold); color: #fff; font-weight: 700;
+    font-size: 12.5px; padding: 5px 10px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,.2);
+    font-variant-numeric: tabular-nums;
+  }
+  .wb-delete {
+    position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(20,17,14,.5); color: #fff; border: none; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 2;
+  }
+
+  .wb-body { padding: 20px 12px 12px; }
+  .wb-item-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; margin: 0 0 4px; }
+  .wb-item-source {
+    font-size: 11px; color: var(--muted); margin: 0 0 12px; display: block; text-decoration: none;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .wb-item-source[href] { color: #7d6a8f; }
+
+  .wb-btn-move {
+    font-family: 'Space Grotesk', sans-serif; font-size: 11.5px; font-weight: 600; padding: 7px 10px;
+    border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+    width: 100%; justify-content: center;
+  }
+  .wb-btn-move.to-purchased { background: var(--sage); color: #fff; }
+  .wb-btn-move.to-wishlist { background: #EDE6D6; color: var(--ink); }
+
+  .wb-summary { margin: 8px 20px 0; padding: 20px 4px 4px; border-top: 2px dashed var(--line); display: flex; align-items: baseline; justify-content: space-between; }
+  .wb-summary-label { font-size: 13px; color: var(--muted); }
+  .wb-summary-total { font-family: 'Fraunces', serif; font-weight: 600; font-size: 26px; font-variant-numeric: tabular-nums; }
+  .wb-summary-total.wishlist { color: var(--plum); }
+  .wb-summary-total.purchased { color: var(--sage); }
+
+  .wb-empty { margin: 56px 20px; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+  .wb-fab {
+    position: fixed; right: 20px; bottom: 24px; width: 56px; height: 56px; border-radius: 50%;
+    background: var(--plum); color: #fff; border: none; box-shadow: 0 8px 18px rgba(60,30,45,.35);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 25;
+  }
+
+  .wb-overlay { position: fixed; inset: 0; background: rgba(30,26,22,.5); display: flex; align-items: flex-end; justify-content: center; z-index: 40; }
+  .wb-sheet { position: relative; background: var(--paper); width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 18px 20px 28px; max-height: 88vh; overflow-y: auto; }
+  .wb-sheet-handle { width: 40px; height: 4px; background: var(--line); border-radius: 2px; margin: 0 auto 16px; }
+  .wb-sheet h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 21px; margin: 0 0 16px; }
+  .wb-close-x { position: absolute; top: 14px; right: 16px; background: none; border: none; cursor: pointer; color: var(--muted); }
+  .wb-field { margin-bottom: 14px; }
+  .wb-field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  .wb-field input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); font-family: 'Space Grotesk', sans-serif; font-size: 14px; background: #fff; color: var(--ink); }
+  .wb-imgmode { display: flex; gap: 8px; margin-bottom: 10px; }
+  .wb-imgmode button { flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font-size: 11.5px; font-weight: 600; cursor: pointer; color: var(--ink); }
+  .wb-imgmode button.active { background: var(--plum); color: #fff; border-color: var(--plum); }
+  .wb-preview { width: 100%; height: 130px; border-radius: 10px; object-fit: cover; margin-top: 8px; border: 1px solid var(--line); }
+  .wb-save-btn { width: 100%; padding: 13px; border-radius: 12px; border: none; background: var(--plum); color: #fff; font-weight: 700; font-size: 14.5px; cursor: pointer; margin-top: 4px; font-family: 'Space Grotesk', sans-serif; }
+  .wb-save-btn:disabled { opacity: .45; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const STORAGE_KEY = "wishboard-items-v1";
+
+const currency = (n) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+    Number.isFinite(n) ? n : 0
+  );
+
+const hostnameOf = (url) => {
+  if (!url) return "";
+  try {
+    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+    return u.hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+};
+
+// --- tiny inline icons (no external icon dependency) ---
+const Icon = ({ d, size = 16, ...rest }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...rest}>
+    <path d={d} />
+  </svg>
+);
+const PlusIcon = (p) => <Icon d="M12 5v14M5 12h14" {...p} />;
+const XIcon = (p) => <Icon d="M18 6 6 18M6 6l12 12" {...p} />;
+const LinkIcon = (p) => <Icon d="M10 13a5 5 0 007.07 0l1.93-1.93a5 5 0 00-7.07-7.07L10.5 5.5M14 11a5 5 0 00-7.07 0L5 12.93a5 5 0 007.07 7.07L13.5 18.5" {...p} />;
+const UploadIcon = (p) => <Icon d="M12 3v12m0-12 4 4m-4-4-4 4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" {...p} />;
+const BagIcon = (p) => <Icon d="M6 7h12l1 14H5L6 7zM9 7a3 3 0 016 0" {...p} />;
+const UndoIcon = (p) => <Icon d="M9 14 4 9l5-5M4 9h10a5 5 0 015 5v1" {...p} />;
+
+function useWishboardData() {
+  const [items, setItems] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setItems(JSON.parse(raw));
+    } catch {
+      // start empty if storage is unavailable or corrupt
+    } finally {
+      setLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    } catch {
+      // storage full or unavailable — data just won't persist this session
+    }
+  }, [items, loaded]);
+
+  return { items, setItems, loaded };
+}
+
+function PriceTag({ value }) {
+  return <div className="wb-price-tag">{currency(value)}</div>;
+}
+
+function ItemCard({ item, onMove, onDelete }) {
+  const [imgError, setImgError] = useState(false);
+  const initial = (item.title || "?").trim().charAt(0).toUpperCase();
+
+  return (
+    <div className="wb-card">
+      <button className="wb-delete" onClick={() => onDelete(item.id)} aria-label="Remove item">
+        <XIcon size={14} />
+      </button>
+      <div className="wb-imgwrap">
+        {item.image && !imgError ? (
+          <img src={item.image} alt={item.title} onError={() => setImgError(true)} />
+        ) : (
+          <div className="wb-placeholder"><span>{initial}</span></div>
+        )}
+        <PriceTag value={item.price} />
+      </div>
+      <div className="wb-body">
+        <p className="wb-item-title">{item.title}</p>
+        {item.link ? (
+          <a className="wb-item-source" href={item.link} target="_blank" rel="noreferrer">
+            {hostnameOf(item.link) || "view item"}
+          </a>
+        ) : (
+          <p className="wb-item-source">&nbsp;</p>
+        )}
+        <div className="wb-item-actions">
+          {item.status === "wishlist" ? (
+            <button className="wb-btn-move to-purchased" onClick={() => onMove(item.id, "purchased")}>
+              <BagIcon size={13} /> Mark purchased
+            </button>
+          ) : (
+            <button className="wb-btn-move to-wishlist" onClick={() => onMove(item.id, "wishlist")}>
+              <UndoIcon size={13} /> Move back
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddItemSheet({ open, onClose, onAdd }) {
+  const [imgMode, setImgMode] = useState("url");
+  const [imageUrl, setImageUrl] = useState("");
+  const [uploadedImage, setUploadedImage] = useState("");
+  const [title, setTitle] = useState("");
+  const [price, setPrice] = useState("");
+  const [link, setLink] = useState("");
+  const fileRef = useRef(null);
+
+  const reset = () => {
+    setImgMode("url"); setImageUrl(""); setUploadedImage("");
+    setTitle(""); setPrice(""); setLink("");
+  };
+
+  const handleFile = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setUploadedImage(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const canSave = title.trim().length > 0;
+
+  const handleSave = () => {
+    if (!canSave) return;
+    onAdd({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      title: title.trim(),
+      price: parseFloat(price) || 0,
+      image: imgMode === "upload" ? uploadedImage : imageUrl.trim(),
+      link: link.trim(),
+      status: "wishlist",
+      addedAt: new Date().toISOString(),
+    });
+    reset();
+    onClose();
+  };
+
+  if (!open) return null;
+  const preview = imgMode === "upload" ? uploadedImage : imageUrl;
+
+  return (
+    <div className="wb-overlay" onClick={onClose}>
+      <div className="wb-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="wb-sheet-handle" />
+        <button className="wb-close-x" onClick={onClose} aria-label="Close"><XIcon size={20} /></button>
+        <h2>Pin something new</h2>
+
+        <div className="wb-field">
+          <label>Photo</label>
+          <div className="wb-imgmode">
+            <button className={imgMode === "url" ? "active" : ""} onClick={() => setImgMode("url")} type="button">
+              <LinkIcon size={13} style={{ marginRight: 5, verticalAlign: -2 }} /> Paste image link
+            </button>
+            <button className={imgMode === "upload" ? "active" : ""} onClick={() => setImgMode("upload")} type="button">
+              <UploadIcon size={13} style={{ marginRight: 5, verticalAlign: -2 }} /> Upload photo
+            </button>
+          </div>
+          {imgMode === "url" ? (
+            <input type="text" placeholder="https://example.com/photo.jpg" value={imageUrl}
+                   onChange={(e) => setImageUrl(e.target.value)} />
+          ) : (
+            <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} />
+          )}
+          {preview ? <img className="wb-preview" src={preview} alt="Preview" /> : null}
+        </div>
+
+        <div className="wb-field">
+          <label>What is it?</label>
+          <input type="text" placeholder="e.g. Sherpa fleece jacket" value={title}
+                 onChange={(e) => setTitle(e.target.value)} />
+        </div>
+
+        <div className="wb-field">
+          <label>Price</label>
+          <input type="number" inputMode="decimal" step="0.01" min="0" placeholder="0.00" value={price}
+                 onChange={(e) => setPrice(e.target.value)} />
+        </div>
+
+        <div className="wb-field">
+          <label>Link to the product (optional)</label>
+          <input type="text" placeholder="https://store.com/product" value={link}
+                 onChange={(e) => setLink(e.target.value)} />
+        </div>
+
+        <button className="wb-save-btn" disabled={!canSave} onClick={handleSave}>
+          <PlusIcon size={16} style={{ verticalAlign: -3, marginRight: 4 }} /> Add to wishlist
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Wishboard() {
+  const { items, setItems, loaded } = useWishboardData();
+  const [tab, setTab] = useState("wishlist");
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const addItem = useCallback((item) => setItems((prev) => [item, ...prev]), [setItems]);
+  const deleteItem = useCallback((id) => setItems((prev) => prev.filter((i) => i.id !== id)), [setItems]);
+  const moveItem = useCallback((id, status) =>
+    setItems((prev) => prev.map((i) => i.id === id
+      ? { ...i, status, purchasedAt: status === "purchased" ? new Date().toISOString() : undefined }
+      : i
+    )), [setItems]);
+
+  const wishlist = items.filter((i) => i.status === "wishlist");
+  const purchased = items.filter((i) => i.status === "purchased");
+  const wishlistTotal = wishlist.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+  const purchasedTotal = purchased.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+  const visible = tab === "wishlist" ? wishlist : purchased;
+
+  return (
+    <div className="wb-root">
+      <div className="wb-header">
+        <h1 className="wb-title">Wishboard</h1>
+        <p className="wb-subtitle">Pin what you want. Watch what it costs.</p>
+      </div>
+
+      <div className="wb-tabs">
+        <div className={`wb-tab ${tab === "wishlist" ? "active-wishlist" : ""}`} onClick={() => setTab("wishlist")}>
+          Wishlist <span className="wb-count">{wishlist.length}</span>
+        </div>
+        <div className={`wb-tab ${tab === "purchased" ? "active-purchased" : ""}`} onClick={() => setTab("purchased")}>
+          Purchased <span className="wb-count">{purchased.length}</span>
+        </div>
+      </div>
+      <div className="wb-tabline" />
+
+      {loaded && visible.length === 0 ? (
+        <div className="wb-empty">
+          {tab === "wishlist"
+            ? "Nothing pinned yet. Tap the + to add the first thing you're eyeing."
+            : "Nothing purchased yet. Items you mark as bought will land here."}
+        </div>
+      ) : (
+        <div className="wb-grid">
+          {visible.map((item) => (
+            <ItemCard key={item.id} item={item} onMove={moveItem} onDelete={deleteItem} />
+          ))}
+        </div>
+      )}
+
+      {visible.length > 0 && (
+        <div className="wb-summary">
+          <span className="wb-summary-label">{tab === "wishlist" ? "Wishlist total" : "Total spent"}</span>
+          <span className={`wb-summary-total ${tab}`}>
+            {currency(tab === "wishlist" ? wishlistTotal : purchasedTotal)}
+          </span>
+        </div>
+      )}
+
+      <button className="wb-fab" onClick={() => setSheetOpen(true)} aria-label="Add item">
+        <PlusIcon size={26} />
+      </button>
+
+      <AddItemSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onAdd={addItem} />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Wishboard />);
+</script>
+
+<script>
+  // Register the service worker so Wishboard can be installed and used offline.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch((err) => {
+        console.warn("Service worker registration failed:", err);
+      });
+    });
+  }
+</script>
+</body>
+</html>
