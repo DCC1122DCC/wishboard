@@ -11,31 +11,31 @@
 <style>
   html, body { margin: 0; padding: 0; }
   .wb-root {
-    /* ---- color tokens (Theme 1 / Original defaults) ---- */
-    --paper: #F3EEE4;
-    --ink: #2A2622;
-    --muted: #8a8272;
-    --plum: #5B3A4B;
-    --gold: #C08A28;
-    --sage: #6E8266;
-    --zen: #6E7F9E;
-    --line: #E1D8C4;
-    --card: #FFFDF9;
+    /* ---- color tokens (Original / Quiet-Luxury Editorial defaults) ---- */
+    --paper: #F6F3EC;
+    --ink: #1C1A17;
+    --muted: #8C877C;
+    --plum: #1C1A17;
+    --gold: #A9814A;
+    --sage: #5E6B57;
+    --zen: #55606B;
+    --line: #E3DED2;
+    --card: #FFFFFF;
 
     /* ---- shape / elevation / type tokens ---- */
-    --radius-card: 14px;
-    --radius-tab: 12px;
-    --radius-sheet: 20px;
-    --radius-btn: 12px;
-    --radius-small: 8px;
-    --radius-field: 10px;
-    --radius-auth: 18px;
-    --shadow-card: none;
-    --shadow-fab: 0 8px 18px rgba(60,30,45,.35);
-    --shadow-auth: 0 12px 30px rgba(50,30,40,.10);
+    --radius-card: 6px;
+    --radius-tab: 4px;
+    --radius-sheet: 10px;
+    --radius-btn: 6px;
+    --radius-small: 4px;
+    --radius-field: 6px;
+    --radius-auth: 10px;
+    --shadow-card: 0 1px 3px rgba(20,18,14,.06);
+    --shadow-fab: 0 6px 16px rgba(20,18,14,.28);
+    --shadow-auth: 0 10px 26px rgba(20,18,14,.08);
     --font-display: 'Fraunces', serif;
-    --font-body: 'Space Grotesk', sans-serif;
-    --x-color: #B9B2A2;
+    --font-body: 'Inter', sans-serif;
+    --x-color: #B7B2A6;
 
     font-family: var(--font-body);
     background: var(--paper);
@@ -46,52 +46,46 @@
   }
   .wb-root *, .wb-root *::before, .wb-root *::after { box-sizing: border-box; }
 
-  /* ===================== THEME 2: QUIET LUXURY ===================== */
-  .wb-root[data-theme="luxury"] {
-    --paper: #FBF8F3; --ink: #2E2A24; --muted: #A89C88; --plum: #6B5B45; --gold: #B08D57;
-    --sage: #8A7A63; --zen: #9C9484; --line: #E9E2D6; --card: #FFFFFF;
-    --radius-card: 4px; --radius-tab: 2px; --radius-sheet: 6px; --radius-btn: 2px;
-    --radius-small: 2px; --radius-field: 2px; --radius-auth: 6px;
-    --shadow-card: none; --shadow-fab: 0 6px 16px rgba(46,42,36,.18); --shadow-auth: 0 10px 24px rgba(46,42,36,.08);
-    --font-display: 'Fraunces', serif; --font-body: 'Inter', sans-serif;
-    --x-color: #C7BDA8;
-  }
-
-  /* ===================== THEME 3: PLAYFUL / DOPAMINE ===================== */
-  .wb-root[data-theme="playful"] {
-    --paper: #FFF8F0; --ink: #2B2640; --muted: #8D86A6; --plum: #7C3AED; --gold: #FBBF24;
-    --sage: #06B6D4; --zen: #EC4899; --line: #EEE7FB; --card: #FFFFFF;
-    --radius-card: 22px; --radius-tab: 16px; --radius-sheet: 26px; --radius-btn: 18px;
-    --radius-small: 12px; --radius-field: 14px; --radius-auth: 22px;
-    --shadow-card: 0 10px 22px rgba(124,58,237,.15); --shadow-fab: 0 10px 22px rgba(124,58,237,.4); --shadow-auth: 0 14px 30px rgba(124,58,237,.18);
-    --font-display: 'Baloo 2', cursive; --font-body: 'Baloo 2', sans-serif;
-    --x-color: #B9B3CE;
-  }
-
-  /* ============== THEME 4: HYPER-CONSUMERIST ABSURDISM ============== */
+  /* ============== HYPER-CONSUMERIST (glossy bevels, gradients) ============== */
   .wb-root[data-theme="absurdist"] {
     --paper: #F2F2F2; --ink: #111111; --muted: #6B6B6B; --plum: #FF2D78; --gold: #FFD600;
     --sage: #00C853; --zen: #2979FF; --line: #E0E0E0; --card: #FFFFFF;
-    --radius-card: 2px; --radius-tab: 0px; --radius-sheet: 0px; --radius-btn: 2px;
-    --radius-small: 0px; --radius-field: 2px; --radius-auth: 0px;
-    --shadow-card: 3px 3px 0 rgba(0,0,0,.9); --shadow-fab: 4px 4px 0 rgba(0,0,0,.85); --shadow-auth: 6px 6px 0 rgba(0,0,0,.85);
+    --radius-card: 6px; --radius-tab: 4px; --radius-sheet: 10px; --radius-btn: 8px;
+    --radius-small: 4px; --radius-field: 6px; --radius-auth: 10px;
+    --shadow-card: 3px 3px 0 rgba(0,0,0,.9); --shadow-fab: 0 6px 0 rgba(0,0,0,.85), 0 10px 20px rgba(0,0,0,.3); --shadow-auth: 6px 6px 0 rgba(0,0,0,.85);
     --font-display: 'Archivo Black', sans-serif; --font-body: 'Space Grotesk', sans-serif;
     --x-color: #BDBDBD;
   }
   .wb-root[data-theme="absurdist"] .wb-card { border: 2px solid var(--ink); }
-  .wb-root[data-theme="absurdist"] .wb-fab { border: 2px solid var(--ink); }
+  .wb-root[data-theme="absurdist"] .wb-fab {
+    border: 2px solid var(--ink); background: linear-gradient(160deg, #FF6FA1 0%, var(--plum) 55%, #C4005E 100%);
+  }
+  .wb-root[data-theme="absurdist"] .wb-save-btn,
+  .wb-root[data-theme="absurdist"] .wb-autofill-btn {
+    background: linear-gradient(160deg, #FF6FA1 0%, var(--plum) 60%, #C4005E 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 4px rgba(0,0,0,.25), 0 3px 0 rgba(0,0,0,.85);
+    border: 2px solid var(--ink);
+  }
+  .wb-root[data-theme="absurdist"] .wb-btn-move.to-purchased { background: linear-gradient(160deg, #6CFFB0 0%, var(--sage) 65%, #009624 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 2px 0 rgba(0,0,0,.7); border: 2px solid var(--ink); }
+  .wb-root[data-theme="absurdist"] .wb-btn-move.to-transcended { background: linear-gradient(160deg, #7DB1FF 0%, var(--zen) 65%, #0039CB 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 2px 0 rgba(0,0,0,.7); border: 2px solid var(--ink); }
+  .wb-root[data-theme="absurdist"] .wb-price-tag { background: linear-gradient(160deg, #FFEA6E 0%, var(--gold) 65%, #C7A400 100%); color: #111; box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 3px 8px rgba(0,0,0,.3); }
 
-  /* ===================== THEME 5: SURREALIST / DREAM LOGIC ===================== */
+  .wb-ticker { overflow: hidden; background: var(--ink); color: var(--gold); border-bottom: 2px solid var(--ink); }
+  .wb-ticker-track { display: flex; white-space: nowrap; width: max-content; animation: wb-ticker-scroll 18s linear infinite; }
+  .wb-ticker-track span { padding: 6px 0; font-family: var(--font-body); font-weight: 700; font-size: 12px; letter-spacing: .04em; }
+  @keyframes wb-ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ============== SURREALIST (cream / sky-blue / butter-yellow / coral) ============== */
   .wb-root[data-theme="surreal"] {
-    --paper: #F3ECFF; --ink: #33314A; --muted: #9C93B8; --plum: #9D7FEA; --gold: #E8C77E;
-    --sage: #6EE7C8; --zen: #F6A6C1; --line: rgba(157,127,234,.3); --card: #FDFBFF;
+    --paper: #FBF3E3; --ink: #32363D; --muted: #9AA6AE; --plum: #3E8E9E; --gold: #F5D76E;
+    --sage: #6EC6E8; --zen: #FF8A65; --line: rgba(62,142,158,.22); --card: #FFFDF6;
     --radius-card: 26px; --radius-tab: 18px; --radius-sheet: 30px; --radius-btn: 20px;
     --radius-small: 14px; --radius-field: 16px; --radius-auth: 26px;
-    --shadow-card: 0 12px 26px rgba(157,127,234,.22); --shadow-fab: 0 12px 26px rgba(157,127,234,.4); --shadow-auth: 0 16px 34px rgba(157,127,234,.25);
+    --shadow-card: 0 12px 26px rgba(62,142,158,.16); --shadow-fab: 0 12px 26px rgba(255,138,101,.4); --shadow-auth: 0 16px 34px rgba(62,142,158,.16);
     --font-display: 'Unbounded', cursive; --font-body: 'Space Grotesk', sans-serif;
-    --x-color: #C2B8D9;
+    --x-color: #C6CDD1;
   }
-  .wb-root[data-theme="surreal"] { background: linear-gradient(160deg, #F4E9FF 0%, #E9F6FF 50%, #FFF0F5 100%); }
+  .wb-root[data-theme="surreal"] { background: linear-gradient(160deg, #FBF3E3 0%, #EAF6FB 50%, #FFF6E0 100%); }
   .wb-root[data-theme="surreal"] .wb-card { border-radius: 28px 12px 28px 12px; }
   .wb-root[data-theme="surreal"] .wb-title { font-size: 40px; letter-spacing: -0.01em; }
 
@@ -103,7 +97,8 @@
   .wb-microcopy { font-size: 11px; font-style: italic; color: var(--muted); margin: 4px 0 0; }
 
   .wb-header { padding: 26px 20px 0; }
-  .wb-title { font-family: var(--font-display); font-style: italic; font-weight: 600; font-size: 30px; margin: 0; letter-spacing: -0.01em; }
+  .wb-title { font-family: var(--font-display); font-style: italic; font-weight: 600; font-size: 30px; margin: 0; letter-spacing: -0.01em; display: flex; align-items: center; gap: 9px; }
+  .wb-title-logo { display: inline-flex; align-items: center; color: var(--gold); }
   .wb-subtitle { font-size: 13px; color: var(--muted); margin: 5px 0 0; }
 
   .wb-header-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
@@ -133,13 +128,11 @@
   .wb-tabs { display: flex; gap: 6px; margin: 22px 20px 0; flex-wrap: wrap; align-items: flex-end; }
   .wb-tab {
     padding: 10px 14px 12px; border-radius: var(--radius-tab) var(--radius-tab) 0 0; font-size: 13.5px; font-weight: 600;
-    cursor: pointer; border: 1px solid var(--line); border-bottom: none; background: #EAE2CE; color: var(--muted);
+    cursor: pointer; border: 1px solid var(--line); border-bottom: none; background: #ECE8DF; color: var(--muted);
     transition: background .15s, color .15s; position: relative;
   }
-  .wb-root[data-theme="luxury"] .wb-tab { background: #F0EBDF; }
-  .wb-root[data-theme="playful"] .wb-tab { background: #F1E9FF; }
   .wb-root[data-theme="absurdist"] .wb-tab { background: #E6E6E6; }
-  .wb-root[data-theme="surreal"] .wb-tab { background: #EADFFF; }
+  .wb-root[data-theme="surreal"] .wb-tab { background: #F1E8D6; }
   .wb-tab .wb-count { margin-left: 6px; font-size: 11.5px; opacity: .65; }
   .wb-tab.active-wishlist { background: var(--card); color: var(--plum); box-shadow: 0 -3px 0 var(--plum) inset; }
   .wb-tab.active-purchased { background: var(--card); color: var(--sage); box-shadow: 0 -3px 0 var(--sage) inset; }
@@ -327,6 +320,10 @@
     background: #fff; color: #a2453c; font-weight: 700; font-size: 13.5px; cursor: pointer;
     font-family: var(--font-body); display: flex; align-items: center; justify-content: center; gap: 6px;
   }
+
+  .wb-footer { margin: 40px 20px 0; padding: 14px 4px 4px; border-top: 1px solid var(--line); text-align: center; }
+  .wb-footer-line { font-family: var(--font-display); font-style: italic; font-size: 13px; color: var(--muted); margin: 0 0 4px; }
+  .wb-footer-stamp { font-size: 10.5px; color: var(--muted); opacity: .7; margin: 0; }
 </style>
 </head>
 <body>
@@ -441,32 +438,12 @@ async function fetchProductDetails(rawUrl) {
   throw lastError;
 }
 
-// --- screenshot parser: lightweight heuristics, no OCR library ---
-// Guesses a title from a sane-looking filename (skips generic camera/
-// screenshot names) and pulls a $-price out of any pasted text (e.g. text
-// copied alongside a screenshot). Best-effort only — it never reads pixels.
-function guessTitleFromFilename(filename) {
-  if (!filename) return "";
-  const base = filename.replace(/\.[a-zA-Z0-9]+$/, "");
-  const genericPattern = /^(img|image|screenshot|screen shot|photo|dsc|whatsapp|received|snapchat|unnamed|download)[\s_-]?\d*$/i;
-  if (genericPattern.test(base.trim())) return "";
-  const cleaned = base.replace(/[_\-]+/g, " ").replace(/\s+/g, " ").trim();
-  if (!cleaned || cleaned.length < 3) return "";
-  return cleaned.replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function guessPriceFromText(text) {
-  if (!text) return "";
-  const match = text.match(/\$\s?(\d{1,5}(?:[.,]\d{2})?)/);
-  if (!match) return "";
-  return match[1].replace(",", "");
-}
-
 // --- tiny inline icons (no external icon dependency) ---
-const Icon = ({ d, size = 16, ...rest }) => (
+const Icon = ({ d, size = 16, children, ...rest }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...rest}>
-    <path d={d} />
+    {d ? <path d={d} /> : null}
+    {children}
   </svg>
 );
 const PlusIcon = (p) => <Icon d="M12 5v14M5 12h14" {...p} />;
@@ -476,16 +453,33 @@ const UploadIcon = (p) => <Icon d="M12 3v12m0-12 4 4m-4-4-4 4M4 17v2a2 2 0 002 2
 const BagIcon = (p) => <Icon d="M6 7h12l1 14H5L6 7zM9 7a3 3 0 016 0" {...p} />;
 const UndoIcon = (p) => <Icon d="M9 14 4 9l5-5M4 9h10a5 5 0 015 5v1" {...p} />;
 const TrashIcon = (p) => <Icon d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v6M14 11v6" {...p} />;
-const ReleaseIcon = (p) => <Icon d="M12 3c0 6-7 7-7 13a7 7 0 0014 0c0-6-7-7-7-13z" {...p} />;
+const SunIcon = (p) => (
+  <Icon d="M12 17a5 5 0 100-10 5 5 0 000 10zM12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" {...p} />
+);
 const PaletteIcon = (p) => <Icon d="M12 2a10 10 0 100 20c1.4 0 2.1-.7 2.1-1.8 0-.5-.2-.9-.4-1.3-.2-.4-.4-.8-.4-1.2 0-.8.6-1.4 1.4-1.4h1.6a3.3 3.3 0 003.3-3.3C19.6 6.6 16.2 2 12 2z" {...p}><circle cx="7" cy="12" r="1.4" fill="currentColor" stroke="none" /><circle cx="9.5" cy="8" r="1.4" fill="currentColor" stroke="none" /><circle cx="14.5" cy="8" r="1.4" fill="currentColor" stroke="none" /></Icon>;
 
-// ---- Theme registry ----
+// ---- Logo ----
+const LOGO_SRC = "logo.png";
+function Logo({ size = 26 }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <SunIcon size={size} />;
+  return (
+    <img
+      src={LOGO_SRC}
+      alt="Wishboard"
+      width={size}
+      height={size}
+      style={{ display: "block", objectFit: "contain" }}
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
+// ---- Theme registry (3 themes only) ----
 const THEMES = [
-  { id: "original", name: "Original", swatch: "#5B3A4B" },
-  { id: "luxury", name: "Quiet Luxury", swatch: "#B08D57" },
-  { id: "playful", name: "Playful", swatch: "#7C3AED" },
-  { id: "absurdist", name: "Consumerist", swatch: "#FF2D78" },
-  { id: "surreal", name: "Surreal", swatch: "#9D7FEA" },
+  { id: "original", name: "Original", swatch: "#B08D57" },
+  { id: "absurdist", name: "Hyper-Consumerist", swatch: "#FF2D78" },
+  { id: "surreal", name: "Surrealist", swatch: "#FF8A65" },
 ];
 
 function ThemeSwitcher({ theme, onChange }) {
@@ -539,7 +533,6 @@ const WISHLIST_MESSAGES = [
   "Wanting costs nothing. Yet.",
 ];
 const PURCHASE_MESSAGES = [
-  "BUY BUY BUY BUY.",
   "Capitalism wins.",
   "You acquired the object.",
   "The desire became possession.",
@@ -549,7 +542,7 @@ const PURCHASE_MESSAGES = [
   "The algorithm knew.",
 ];
 const TRANSCEND_MESSAGES = [
-  "Desire...Transcended!",
+  "\"Desire...Transcended!\" \u2014 Darling",
   "Attachment dissolved.",
   "Craving released.",
   "You let it go.",
@@ -559,13 +552,11 @@ const TRANSCEND_MESSAGES = [
   "Freedom from the object.",
 ];
 const RELAPSE_MESSAGES = [
-  "Girl. We just left.",
   "Enlightenment postponed.",
   "Back so soon?",
   "Detachment: cancelled.",
   "Nirvana can wait.",
   "Relapse of desire.",
-  "We were so close.",
 ];
 const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
@@ -673,26 +664,6 @@ function PriceTag({ value }) {
   return <div className="wb-price-tag">{currency(value)}</div>;
 }
 
-function MiniPreviewCard({ title, price, image, link }) {
-  const initial = (title || "?").trim().charAt(0).toUpperCase() || "?";
-  return (
-    <div className="wb-card wb-mini-preview">
-      <div className="wb-imgwrap">
-        {image ? (
-          <img src={image} alt="" />
-        ) : (
-          <div className="wb-placeholder"><span>{initial}</span></div>
-        )}
-        <PriceTag value={parseFloat(price) || 0} />
-      </div>
-      <div className="wb-body">
-        <p className="wb-item-title">{title || "Your item title"}</p>
-        <p className="wb-item-source">{link ? (hostnameOf(link) || "view item") : "\u00A0"}</p>
-      </div>
-    </div>
-  );
-}
-
 function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
   const [imgError, setImgError] = useState(false);
   const initial = (item.title || "?").trim().charAt(0).toUpperCase();
@@ -736,7 +707,7 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
                 <BagIcon size={13} /> Purchased
               </button>
               <button className="wb-btn-move to-transcended" onClick={() => onMove(item.id, "transcended")}>
-                <ReleaseIcon size={13} /> Transcend
+                <SunIcon size={13} /> Transcend
               </button>
             </>
           ) : (
@@ -876,7 +847,7 @@ function PinDetailModal({ item, tabs, onClose, onMoveStatus, onMoveCustomTab, on
   );
 }
 
-function AddItemSheet({ open, onClose, onAdd, draftKey }) {
+function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
   const [imgMode, setImgMode] = useState("upload");
   const [imageUrl, setImageUrl] = useState("");
   const [uploadedImage, setUploadedImage] = useState("");
@@ -884,6 +855,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey }) {
   const [price, setPrice] = useState("");
   const [link, setLink] = useState("");
   const [notes, setNotes] = useState("");
+  const [pinTarget, setPinTarget] = useState("wishlist"); // "wishlist" | "purchased" | "transcended" | a custom tab id
   const fileRef = useRef(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -913,6 +885,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey }) {
     setImgMode("upload"); setImageUrl(""); setUploadedImage("");
     setTitle(""); setPrice(""); setLink(""); setNotes(""); setSaveError("");
     setLinkFetchError(""); setFetchingLink(false); setRestoredDraft(false);
+    setPinTarget("wishlist");
     destroyCropper();
     setRawImage("");
     if (fileRef.current) fileRef.current.value = "";
@@ -929,7 +902,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey }) {
       }
       localStorage.setItem(
         draftKey,
-        JSON.stringify({ title, price, link, notes, imgMode, imageUrl, uploadedImage })
+        JSON.stringify({ title, price, link, notes, imgMode, imageUrl, uploadedImage, pinTarget })
       );
     } catch {
       // storage can fail (private browsing, quota) — draft loss is non-fatal
@@ -953,6 +926,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey }) {
           setImgMode(draft.imgMode || "upload");
           setImageUrl(draft.imageUrl || "");
           setUploadedImage(draft.uploadedImage || "");
+          setPinTarget(draft.pinTarget || "wishlist");
           setRestoredDraft(true);
         }
       } catch {
@@ -967,21 +941,23 @@ function AddItemSheet({ open, onClose, onAdd, draftKey }) {
   const handleFile = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    if (!title.trim()) {
-      const guessed = guessTitleFromFilename(file.name);
-      if (guessed) setTitle(guessed);
-    }
     const reader = new FileReader();
     reader.onload = () => setRawImage(reader.result); // goes to the cropper, not straight to uploadedImage
     reader.readAsDataURL(file);
+  };
+
+  const clearChosenPhoto = () => {
+    setUploadedImage("");
+    setImageUrl("");
+    if (fileRef.current) fileRef.current.value = "";
   };
 
   const handleCropperImgLoad = () => {
     destroyCropper();
     if (cropperImgRef.current && window.Cropper) {
       cropperRef.current = new window.Cropper(cropperImgRef.current, {
-        aspectRatio: 1, // square output canvas
-        viewMode: 0, // crop box can move/extend beyond the photo bounds (Ken Burns-style freeform)
+        aspectRatio: NaN, // freeform — no forced aspect ratio
+        viewMode: 1, // crop box is clamped inside the photo's own bounds
         autoCropArea: 0.9,
         background: false,
         responsive: true,
@@ -1041,15 +1017,6 @@ function AddItemSheet({ open, onClose, onAdd, draftKey }) {
     }
   };
 
-  // screenshot-parser heuristic: catch a $-price from any pasted text in the sheet
-  const handleSheetPaste = (e) => {
-    if (e.target && e.target.getAttribute && e.target.getAttribute("type") === "number") return;
-    if (price) return;
-    const text = e.clipboardData ? e.clipboardData.getData("text") : "";
-    const guessed = guessPriceFromText(text);
-    if (guessed) setPrice(guessed);
-  };
-
   const canSave = title.trim().length > 0 && !saving;
 
   const requestClose = () => {
@@ -1057,6 +1024,22 @@ function AddItemSheet({ open, onClose, onAdd, draftKey }) {
     reset();
     onClose();
   };
+
+  const handleCancel = () => {
+    if (!hasUnsavedInput()) {
+      clearDraft();
+      reset();
+      onClose();
+      return;
+    }
+    if (window.confirm("Discard this pin? This can't be undone.")) {
+      clearDraft();
+      reset();
+      onClose();
+    }
+  };
+
+  const isBuiltInTarget = pinTarget === "wishlist" || pinTarget === "purchased" || pinTarget === "transcended";
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -1069,7 +1052,9 @@ function AddItemSheet({ open, onClose, onAdd, draftKey }) {
         image: imgMode === "upload" ? uploadedImage : imageUrl.trim(),
         link: link.trim(),
         notes: notes.trim(),
-        status: "wishlist",
+        status: isBuiltInTarget ? pinTarget : "wishlist",
+        custom_tab_id: isBuiltInTarget ? null : pinTarget,
+        purchased_at: pinTarget === "purchased" ? new Date().toISOString() : null,
       });
       clearDraft();
       reset();
@@ -1096,12 +1081,16 @@ function AddItemSheet({ open, onClose, onAdd, draftKey }) {
   if (!open) return null;
   const preview = imgMode === "upload" ? uploadedImage : imageUrl;
 
+  const targetLabel = pinTarget === "wishlist" ? "Wishlist"
+    : pinTarget === "purchased" ? "Purchased"
+    : pinTarget === "transcended" ? "Transcended"
+    : (tabs.find((t) => t.id === pinTarget) || {}).name || "Tab";
+
   return (
     <div className="wb-overlay" onClick={requestClose}>
       <div
         className="wb-sheet"
         onClick={(e) => e.stopPropagation()}
-        onPaste={handleSheetPaste}
         style={{
           transform: dragY ? `translateY(${dragY}px)` : undefined,
           transition: dragY ? "none" : "transform .2s ease",
@@ -1116,6 +1105,20 @@ function AddItemSheet({ open, onClose, onAdd, draftKey }) {
         <button className="wb-close-x" onClick={requestClose} aria-label="Close"><XIcon size={20} /></button>
         <h2>Pin something new</h2>
         {restoredDraft ? <p className="wb-draft-hint">Continuing your last unfinished pin.</p> : null}
+
+        <div className="wb-field">
+          <label>Pin to</label>
+          <div className="wb-detail-tabs">
+            <button type="button" className={pinTarget === "wishlist" ? "active" : ""} onClick={() => setPinTarget("wishlist")}>Wishlist</button>
+            <button type="button" className={pinTarget === "purchased" ? "active" : ""} onClick={() => setPinTarget("purchased")}>Purchased</button>
+            <button type="button" className={pinTarget === "transcended" ? "active" : ""} onClick={() => setPinTarget("transcended")}>Transcended</button>
+            {tabs.map((t) => (
+              <button type="button" key={t.id} className={pinTarget === t.id ? "active" : ""} onClick={() => setPinTarget(t.id)}>
+                {t.name}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="wb-field">
           <label>Link to the product (optional)</label>
@@ -1151,7 +1154,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey }) {
               <div className="wb-cropper-wrap">
                 <img ref={cropperImgRef} src={rawImage} onLoad={handleCropperImgLoad} alt="Crop preview" />
               </div>
-              <p className="wb-crop-hint">Drag the crop box beyond the photo edges to pad it out — output is always square.</p>
+              <p className="wb-crop-hint">Freeform crop — drag the handles however you like; the box stays within the photo.</p>
               <div className="wb-cropper-actions">
                 <button type="button" className="wb-cropper-cancel" onClick={cancelCrop}>Cancel</button>
                 <button type="button" className="wb-save-btn" onClick={applyCrop}>Use this crop</button>
@@ -1171,12 +1174,25 @@ function AddItemSheet({ open, onClose, onAdd, draftKey }) {
                 <input type="text" placeholder="https://example.com/photo.jpg" value={imageUrl}
                        onChange={(e) => setImageUrl(e.target.value)} />
               ) : (
-                <>
-                  <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} />
-                  <p className="wb-link-hint">We'll try to guess a title from the filename — a quick heuristic, not real OCR.</p>
-                </>
+                <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} />
               )}
-              {preview ? <img className="wb-preview" src={preview} alt="Preview" /> : null}
+              {preview ? (
+                <div style={{ position: "relative", display: "inline-block", marginTop: 8 }}>
+                  <img className="wb-preview" src={preview} alt="Preview" style={{ marginTop: 0 }} />
+                  <button
+                    type="button"
+                    onClick={clearChosenPhoto}
+                    aria-label="Remove photo"
+                    style={{
+                      position: "absolute", top: 6, right: 6, width: 22, height: 22, borderRadius: "50%",
+                      border: "none", background: "rgba(255,255,255,.9)", color: "var(--x-color)",
+                      display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                    }}
+                  >
+                    <XIcon size={13} />
+                  </button>
+                </div>
+              ) : null}
             </>
           )}
         </div>
@@ -1203,15 +1219,10 @@ function AddItemSheet({ open, onClose, onAdd, draftKey }) {
           />
         </div>
 
-        <div className="wb-field">
-          <label>Live preview</label>
-          <MiniPreviewCard title={title} price={price} image={preview} link={link} />
-        </div>
-
         <div className="wb-sheet-actions">
-          <button type="button" className="wb-cancel-btn" onClick={requestClose}>Cancel</button>
+          <button type="button" className="wb-cancel-btn" onClick={handleCancel}>Cancel</button>
           <button className="wb-save-btn" disabled={!canSave} onClick={handleSave}>
-            <PlusIcon size={16} style={{ verticalAlign: -3, marginRight: 4 }} /> {saving ? "Saving…" : "Add to wishlist"}
+            <PlusIcon size={16} style={{ verticalAlign: -3, marginRight: 4 }} /> {saving ? "Saving…" : `Add to ${targetLabel}`}
           </button>
         </div>
         {saveError ? <p className="wb-auth-error" style={{ marginTop: 10, marginBottom: 0 }}>{saveError}</p> : null}
@@ -1229,6 +1240,51 @@ function Toast({ message, onDone }) {
   return <div className="wb-toast">{message}</div>;
 }
 
+function Ticker() {
+  const phrases = [
+    "LIMITED TIME OFFER", "ACT NOW", "YOU DESERVE THIS", "FREE SHIPPING ON DESIRE",
+    "BUY MORE SAVE MORE", "SUPPLIES WON'T LAST", "TREAT YOURSELF TODAY", "EXCLUSIVE ACCESS",
+  ];
+  const line = phrases.concat(phrases).join("   \u2726   ");
+  return (
+    <div className="wb-ticker">
+      <div className="wb-ticker-track">
+        <span>{line}</span>
+        <span>{line}</span>
+      </div>
+    </div>
+  );
+}
+
+function Footer({ tab, userId }) {
+  const [lastHere, setLastHere] = useState("");
+
+  useEffect(() => {
+    const key = `wb-last-visit:${userId}`;
+    try {
+      const prev = localStorage.getItem(key);
+      if (prev) {
+        const diffMs = Date.now() - Number(prev);
+        const mins = Math.floor(diffMs / 60000);
+        if (mins < 1) setLastHere("just now");
+        else if (mins < 60) setLastHere(`${mins}m ago`);
+        else if (mins < 60 * 24) setLastHere(`${Math.floor(mins / 60)}h ago`);
+        else setLastHere(`${Math.floor(mins / (60 * 24))}d ago`);
+      }
+      localStorage.setItem(key, String(Date.now()));
+    } catch {
+      // ignore
+    }
+  }, [userId]);
+
+  return (
+    <div className="wb-footer">
+      {tab === "wishlist" ? <p className="wb-footer-line">take me take mine</p> : null}
+      {lastHere ? <p className="wb-footer-stamp">last here {lastHere}</p> : null}
+    </div>
+  );
+}
+
 function Wishboard({ userId, userEmail }) {
   const { items, addItem, deleteItem, moveItem, updateItem, loaded } = useWishboardData(userId);
   const { tabs: customTabs, addTab, deleteTab } = useCustomTabs(userId);
@@ -1238,7 +1294,11 @@ function Wishboard({ userId, userEmail }) {
   const [toastMsg, setToastMsg] = useState("");
   const [toastKey, setToastKey] = useState(0);
   const [theme, setThemeState] = useState(() => {
-    try { return localStorage.getItem("wb-theme") || "original"; } catch { return "original"; }
+    try {
+      const saved = localStorage.getItem("wb-theme");
+      if (saved === "luxury" || saved === "playful") return "original"; // migrate retired themes
+      return saved || "original";
+    } catch { return "original"; }
   });
 
   const setTheme = (t) => {
@@ -1256,11 +1316,8 @@ function Wishboard({ userId, userEmail }) {
   const showToast = (msg) => { setToastMsg(msg); setToastKey((k) => k + 1); };
 
   const handleTabChange = (newTab) => {
-    if (newTab === tab) return;
+    // plain tab-click view switching — no toast, ever
     setTab(newTab);
-    if (newTab === "wishlist") showToast(pickRandom(WISHLIST_MESSAGES));
-    else if (newTab === "purchased") showToast(pickRandom(PURCHASE_MESSAGES));
-    else if (newTab === "transcended") showToast(pickRandom(TRANSCEND_MESSAGES));
   };
 
   const handleMoveStatus = async (id, status) => {
@@ -1315,7 +1372,7 @@ function Wishboard({ userId, userEmail }) {
   const subtitle = isBuiltIn
     ? (tab === "wishlist" ? "Pin what you want. Watch what it costs."
        : tab === "purchased" ? "The desire has become possession."
-       : "\u201cAll conditioned things are impermanent.\u201d \u2014 Dhammapada")
+       : "\"Desire...Transcended!\" \u2014 Darling")
     : (activeCustomTab ? `Your "${activeCustomTab.name}" collection.` : "");
 
   const emptyText = isBuiltIn
@@ -1325,23 +1382,22 @@ function Wishboard({ userId, userEmail }) {
     : "Nothing here yet.";
 
   const summaryLabel = isBuiltIn
-    ? (tab === "wishlist" ? "Total Desired" : tab === "purchased" ? "Total Consumed" : "Saved Through Detachment")
-    : `${activeCustomTab ? activeCustomTab.name : "Tab"} total`;
+    ? (tab === "wishlist" ? "TOTAL" : tab === "purchased" ? "SPENT" : "SAVED THROUGH DETACHMENT")
+    : `${activeCustomTab ? activeCustomTab.name.toUpperCase() : "TAB"} TOTAL`;
   const summaryTotal = isBuiltIn
     ? (tab === "wishlist" ? wishlistTotal : tab === "purchased" ? purchasedTotal : transcendedTotal)
     : customTabTotal;
-  const summaryCaption = isBuiltIn
-    ? (tab === "wishlist" ? "before taxes" : tab === "purchased" ? "spent in total" : "liberation")
-    : null;
 
   const openItem = openItemId ? items.find((i) => i.id === openItemId) : null;
 
   return (
     <div className="wb-root" data-theme={theme}>
+      {theme === "absurdist" ? <Ticker /> : null}
       <div className="wb-header">
         <div className="wb-header-top">
           <div>
             <h1 className="wb-title">
+              <span className="wb-title-logo"><Logo size={26} /></span>
               Wishboard
               {theme === "absurdist" ? <span className="wb-badge">CONSUMER PROFILE</span> : null}
             </h1>
@@ -1371,7 +1427,7 @@ function Wishboard({ userId, userEmail }) {
           const count = items.filter((i) => i.custom_tab_id === ct.id).length;
           const active = tab === ct.id;
           return (
-            <div key={ct.id} className={`wb-tab ${active ? "active-custom" : ""}`} onClick={() => setTab(ct.id)}>
+            <div key={ct.id} className={`wb-tab ${active ? "active-custom" : ""}`} onClick={() => handleTabChange(ct.id)}>
               {ct.name} <span className="wb-count">{count}</span>
               {active ? (
                 <button className="wb-tab-delete" onClick={(e) => { e.stopPropagation(); handleDeleteTab(ct.id); }} aria-label="Delete tab">
@@ -1389,10 +1445,7 @@ function Wishboard({ userId, userEmail }) {
 
       {visible.length > 0 && (
         <div className="wb-summary-sticky">
-          <div>
-            <span className="wb-summary-label">{summaryLabel}</span>
-            {summaryCaption ? <p className="wb-summary-sticky-caption">{summaryCaption}</p> : null}
-          </div>
+          <span className="wb-summary-label">{summaryLabel}</span>
           <span className={`wb-summary-total ${isBuiltIn ? tab : ""}`}>{currency(summaryTotal)}</span>
         </div>
       )}
@@ -1413,7 +1466,6 @@ function Wishboard({ userId, userEmail }) {
             <span className="wb-summary-label">{summaryLabel}</span>
             <span className={`wb-summary-total ${isBuiltIn ? tab : ""}`}>{currency(summaryTotal)}</span>
           </div>
-          {summaryCaption ? <p className="wb-summary-caption">{summaryCaption}</p> : null}
         </div>
       )}
 
@@ -1421,7 +1473,7 @@ function Wishboard({ userId, userEmail }) {
         <PlusIcon size={26} />
       </button>
 
-      <AddItemSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onAdd={addItem} draftKey={`wb-draft:${userId}`} />
+      <AddItemSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onAdd={addItem} draftKey={`wb-draft:${userId}`} tabs={customTabs} />
       <Toast key={toastKey} message={toastMsg} onDone={() => setToastMsg("")} />
 
       {openItem ? (
@@ -1435,6 +1487,8 @@ function Wishboard({ userId, userEmail }) {
           onSaveNotes={handleSaveNotes}
         />
       ) : null}
+
+      <Footer tab={tab} userId={userId} />
     </div>
   );
 }
@@ -1481,7 +1535,7 @@ function AuthScreen() {
   return (
     <div className="wb-root wb-auth">
       <div className="wb-auth-card">
-        <h1 className="wb-title">Wishboard</h1>
+        <h1 className="wb-title"><span className="wb-title-logo"><Logo size={26} /></span>Wishboard</h1>
         <p className="wb-subtitle">Pin what you want. Watch what it costs.</p>
 
         <div className="wb-auth-tabs">
