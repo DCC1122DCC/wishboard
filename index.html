@@ -2,32 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Wishboard</title>
-
-<!-- PWA: manifest + theme -->
-<link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#5B3A4B" />
-<meta name="description" content="Track what you want and what you've bought, in one simple wishlist." />
-
-<!-- Standard / Android / desktop favicons -->
-<link rel="icon" type="image/x-icon" href="icons/favicon.ico" />
-<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png" />
-<link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png" />
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
-<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
-
-<!-- iOS: "Add to Home Screen" -->
-<link rel="apple-touch-icon" href="icons/icon-180.png" />
-<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png" />
-<link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png" />
-<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Wishboard" />
-
-<!-- macOS Safari 17+: "Add to Dock" reads the same manifest + apple-touch-icon above -->
-
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
@@ -130,6 +106,28 @@
   .wb-preview { width: 100%; height: 130px; border-radius: 10px; object-fit: cover; margin-top: 8px; border: 1px solid var(--line); }
   .wb-save-btn { width: 100%; padding: 13px; border-radius: 12px; border: none; background: var(--plum); color: #fff; font-weight: 700; font-size: 14.5px; cursor: pointer; margin-top: 4px; font-family: 'Space Grotesk', sans-serif; }
   .wb-save-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+  .wb-header-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .wb-logout {
+    background: none; border: 1px solid var(--line); color: var(--muted); padding: 7px 12px;
+    border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+    white-space: nowrap; margin-top: 4px;
+  }
+
+  .wb-root.wb-auth { padding-bottom: 0; display: flex; align-items: center; justify-content: center; }
+  .wb-auth-card {
+    width: 100%; max-width: 380px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 18px; padding: 30px 26px; box-shadow: 0 12px 30px rgba(50,30,40,.10); margin: 24px;
+  }
+  .wb-auth-tabs { display: flex; gap: 6px; margin: 22px 0 20px; border-bottom: 1px solid var(--line); }
+  .wb-auth-tabs button {
+    flex: 1; padding: 10px; background: none; border: none; font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600; font-size: 13.5px; color: var(--muted); cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .wb-auth-tabs button.active { color: var(--plum); border-bottom-color: var(--plum); }
+  .wb-auth-error { font-size: 12.5px; color: #a2453c; margin: -4px 0 12px; line-height: 1.5; }
+  .wb-auth-notice { font-size: 12.5px; color: var(--sage); margin: -4px 0 12px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -138,11 +136,20 @@
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useCallback } = React;
 
-const STORAGE_KEY = "wishboard-items-v1";
+// ============================================================
+// SUPABASE KEYS
+// The anon key is safe to expose in client code — it only works
+// within the row-level-security rules you set up in Supabase.
+// ============================================================
+const SUPABASE_URL = "https://lmtbauyoljswgllakdzl.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_zfrAYBrFS-q3NGK6gC_W7Q_qZTZqUWO";
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const currency = (n) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
@@ -173,31 +180,49 @@ const UploadIcon = (p) => <Icon d="M12 3v12m0-12 4 4m-4-4-4 4M4 17v2a2 2 0 002 2
 const BagIcon = (p) => <Icon d="M6 7h12l1 14H5L6 7zM9 7a3 3 0 016 0" {...p} />;
 const UndoIcon = (p) => <Icon d="M9 14 4 9l5-5M4 9h10a5 5 0 015 5v1" {...p} />;
 
-function useWishboardData() {
+function useWishboardData(userId) {
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw));
-    } catch {
-      // start empty if storage is unavailable or corrupt
-    } finally {
-      setLoaded(true);
-    }
+    if (!userId) { setItems([]); setLoaded(true); return; }
+    let cancelled = false;
+    setLoaded(false);
+    supabaseClient
+      .from("items")
+      .select("*")
+      .eq("user_id", userId)
+      .order("added_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (!error && data) setItems(data);
+        setLoaded(true);
+      });
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  const addItem = useCallback(async (item) => {
+    const { data, error } = await supabaseClient
+      .from("items")
+      .insert({ ...item, user_id: userId })
+      .select()
+      .single();
+    if (error) throw error;
+    setItems((prev) => [data, ...prev]);
+  }, [userId]);
+
+  const deleteItem = useCallback(async (id) => {
+    setItems((prev) => prev.filter((i) => i.id !== id)); // optimistic
+    await supabaseClient.from("items").delete().eq("id", id);
   }, []);
 
-  useEffect(() => {
-    if (!loaded) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    } catch {
-      // storage full or unavailable — data just won't persist this session
-    }
-  }, [items, loaded]);
+  const moveItem = useCallback(async (id, status) => {
+    const purchased_at = status === "purchased" ? new Date().toISOString() : null;
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, status, purchased_at } : i))); // optimistic
+    await supabaseClient.from("items").update({ status, purchased_at }).eq("id", id);
+  }, []);
 
-  return { items, setItems, loaded };
+  return { items, addItem, deleteItem, moveItem, loaded };
 }
 
 function PriceTag({ value }) {
@@ -254,10 +279,12 @@ function AddItemSheet({ open, onClose, onAdd }) {
   const [price, setPrice] = useState("");
   const [link, setLink] = useState("");
   const fileRef = useRef(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   const reset = () => {
     setImgMode("url"); setImageUrl(""); setUploadedImage("");
-    setTitle(""); setPrice(""); setLink("");
+    setTitle(""); setPrice(""); setLink(""); setSaveError("");
   };
 
   const handleFile = (e) => {
@@ -268,21 +295,27 @@ function AddItemSheet({ open, onClose, onAdd }) {
     reader.readAsDataURL(file);
   };
 
-  const canSave = title.trim().length > 0;
+  const canSave = title.trim().length > 0 && !saving;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!canSave) return;
-    onAdd({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      title: title.trim(),
-      price: parseFloat(price) || 0,
-      image: imgMode === "upload" ? uploadedImage : imageUrl.trim(),
-      link: link.trim(),
-      status: "wishlist",
-      addedAt: new Date().toISOString(),
-    });
-    reset();
-    onClose();
+    setSaving(true);
+    setSaveError("");
+    try {
+      await onAdd({
+        title: title.trim(),
+        price: parseFloat(price) || 0,
+        image: imgMode === "upload" ? uploadedImage : imageUrl.trim(),
+        link: link.trim(),
+        status: "wishlist",
+      });
+      reset();
+      onClose();
+    } catch (err) {
+      setSaveError(err.message || "Couldn't save this item — try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!open) return null;
@@ -333,25 +366,18 @@ function AddItemSheet({ open, onClose, onAdd }) {
         </div>
 
         <button className="wb-save-btn" disabled={!canSave} onClick={handleSave}>
-          <PlusIcon size={16} style={{ verticalAlign: -3, marginRight: 4 }} /> Add to wishlist
+          <PlusIcon size={16} style={{ verticalAlign: -3, marginRight: 4 }} /> {saving ? "Saving…" : "Add to wishlist"}
         </button>
+        {saveError ? <p className="wb-auth-error" style={{ marginTop: 10, marginBottom: 0 }}>{saveError}</p> : null}
       </div>
     </div>
   );
 }
 
-function Wishboard() {
-  const { items, setItems, loaded } = useWishboardData();
+function Wishboard({ userId, userEmail }) {
+  const { items, addItem, deleteItem, moveItem, loaded } = useWishboardData(userId);
   const [tab, setTab] = useState("wishlist");
   const [sheetOpen, setSheetOpen] = useState(false);
-
-  const addItem = useCallback((item) => setItems((prev) => [item, ...prev]), [setItems]);
-  const deleteItem = useCallback((id) => setItems((prev) => prev.filter((i) => i.id !== id)), [setItems]);
-  const moveItem = useCallback((id, status) =>
-    setItems((prev) => prev.map((i) => i.id === id
-      ? { ...i, status, purchasedAt: status === "purchased" ? new Date().toISOString() : undefined }
-      : i
-    )), [setItems]);
 
   const wishlist = items.filter((i) => i.status === "wishlist");
   const purchased = items.filter((i) => i.status === "purchased");
@@ -362,8 +388,15 @@ function Wishboard() {
   return (
     <div className="wb-root">
       <div className="wb-header">
-        <h1 className="wb-title">Wishboard</h1>
-        <p className="wb-subtitle">Pin what you want. Watch what it costs.</p>
+        <div className="wb-header-top">
+          <div>
+            <h1 className="wb-title">Wishboard</h1>
+            <p className="wb-subtitle">Pin what you want. Watch what it costs.</p>
+          </div>
+          <button className="wb-logout" onClick={() => supabaseClient.auth.signOut()}>
+            Log out
+          </button>
+        </div>
       </div>
 
       <div className="wb-tabs">
@@ -408,18 +441,116 @@ function Wishboard() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<Wishboard />);
-</script>
+function AuthScreen() {
+  const [mode, setMode] = useState("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
 
-<script>
-  // Register the service worker so Wishboard can be installed and used offline.
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch((err) => {
-        console.warn("Service worker registration failed:", err);
-      });
+  const switchMode = (m) => { setMode(m); setError(""); setNotice(""); };
+
+  const submit = async () => {
+    if (!email.trim() || !password || busy) return;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      if (mode === "login") {
+        const { error } = await supabaseClient.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabaseClient.auth.signUp({
+          email: email.trim(),
+          password,
+        });
+        if (error) throw error;
+        if (data.user && !data.session) {
+          setNotice("Check your email to confirm your account, then log in.");
+        }
+      }
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="wb-root wb-auth">
+      <div className="wb-auth-card">
+        <h1 className="wb-title">Wishboard</h1>
+        <p className="wb-subtitle">Pin what you want. Watch what it costs.</p>
+
+        <div className="wb-auth-tabs">
+          <button className={mode === "login" ? "active" : ""} onClick={() => switchMode("login")} type="button">
+            Log in
+          </button>
+          <button className={mode === "signup" ? "active" : ""} onClick={() => switchMode("signup")} type="button">
+            Sign up
+          </button>
+        </div>
+
+        <div className="wb-field">
+          <label>Email</label>
+          <input
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div className="wb-field">
+          <label>Password</label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+          />
+        </div>
+
+        {error ? <p className="wb-auth-error">{error}</p> : null}
+        {notice ? <p className="wb-auth-notice">{notice}</p> : null}
+
+        <button className="wb-save-btn" disabled={busy || !email.trim() || !password} onClick={submit}>
+          {busy ? "Please wait…" : mode === "login" ? "Log in" : "Create account"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [session, setSession] = useState(undefined); // undefined = checking, null = signed out
+
+  useEffect(() => {
+    supabaseClient.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: listener } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
     });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  if (session === undefined) {
+    return (
+      <div className="wb-root wb-auth">
+        <p className="wb-subtitle">Loading…</p>
+      </div>
+    );
   }
+
+  if (!session) return <AuthScreen />;
+
+  return <Wishboard userId={session.user.id} userEmail={session.user.email} />;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 </body>
 </html>
