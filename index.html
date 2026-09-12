@@ -1,889 +1,546 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Wishboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.3/cropper.min.css" rel="stylesheet" />
-<style>
-  html, body { margin: 0; padding: 0; }
-  .wb-root {
-    --paper: #F3EEE4;
-    --ink: #2A2622;
-    --muted: #8a8272;
-    --plum: #5B3A4B;
-    --gold: #C08A28;
-    --sage: #6E8266;
-    --zen: #6E7F9E;
-    --line: #E1D8C4;
-    --card: #FFFDF9;
-    font-family: 'Space Grotesk', sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    min-height: 100vh;
-    padding-bottom: 100px;
-    box-sizing: border-box;
-  }
-  .wb-root *, .wb-root *::before, .wb-root *::after { box-sizing: border-box; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Wishboard</title>
 
-  .wb-header { padding: 26px 20px 0; }
-  .wb-title { font-family: 'Fraunces', serif; font-style: italic; font-weight: 600; font-size: 30px; margin: 0; letter-spacing: -0.01em; }
-  .wb-subtitle { font-size: 13px; color: var(--muted); margin: 5px 0 0; }
+  <!-- PWA & Mobile Meta Tags -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  .wb-tabs { display: flex; gap: 6px; margin: 22px 20px 0; flex-wrap: wrap; }
-  .wb-tab {
-    padding: 10px 14px 12px; border-radius: 12px 12px 0 0; font-size: 13.5px; font-weight: 600;
-    cursor: pointer; border: 1px solid var(--line); border-bottom: none; background: #EAE2CE; color: var(--muted);
-    transition: background .15s, color .15s;
-  }
-  .wb-tab .wb-count { margin-left: 6px; font-size: 11.5px; opacity: .65; }
-  .wb-tab.active-wishlist { background: var(--card); color: var(--plum); box-shadow: 0 -3px 0 var(--plum) inset; }
-  .wb-tab.active-purchased { background: var(--card); color: var(--sage); box-shadow: 0 -3px 0 var(--sage) inset; }
-  .wb-tab.active-transcended { background: var(--card); color: var(--zen); box-shadow: 0 -3px 0 var(--zen) inset; }
-  .wb-tabline { height: 1px; background: var(--line); margin: 0 20px; }
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Cropper.js CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  .wb-grid { column-count: 2; column-gap: 14px; padding: 18px 20px 0; }
-  @media (min-width: 640px) { .wb-grid { column-count: 3; } }
-  @media (min-width: 960px) { .wb-grid { column-count: 4; } }
-
-  .wb-card { break-inside: avoid; margin-bottom: 14px; background: var(--card); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); position: relative; }
-  .wb-imgwrap { position: relative; background: #ECE4D2; }
-  .wb-imgwrap img { width: 100%; display: block; object-fit: cover; }
-  .wb-placeholder { width: 100%; aspect-ratio: 4 / 5; background: linear-gradient(160deg, var(--plum), #7d5468); display: flex; align-items: center; justify-content: center; }
-  .wb-placeholder span { font-family: 'Fraunces', serif; font-size: 46px; color: rgba(255,255,255,.85); }
-
-  .wb-price-tag {
-    position: absolute; bottom: -12px; left: 10px; background: var(--gold); color: #fff; font-weight: 700;
-    font-size: 12.5px; padding: 5px 10px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,.2);
-    font-variant-numeric: tabular-nums;
-  }
-  .wb-delete {
-    position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%;
-    background: rgba(178,42,42,.88); color: #fff; border: none; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; z-index: 2; transition: background .15s;
-  }
-  .wb-delete:hover { background: rgba(150,32,32,.95); }
-
-  .wb-body { padding: 20px 12px 12px; }
-  .wb-item-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; margin: 0 0 4px; }
-  .wb-item-source {
-    font-size: 11px; color: var(--muted); margin: 0 0 12px; display: block; text-decoration: none;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .wb-item-source[href] { color: #7d6a8f; }
-
-  .wb-item-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-  .wb-btn-move {
-    font-family: 'Space Grotesk', sans-serif; font-size: 11.5px; font-weight: 600; padding: 7px 8px;
-    border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
-    flex: 1; justify-content: center; min-width: 0;
-  }
-  .wb-btn-move.to-purchased { background: var(--sage); color: #fff; }
-  .wb-btn-move.to-transcended { background: var(--zen); color: #fff; }
-  .wb-btn-move.to-wishlist { background: #EDE6D6; color: var(--ink); flex: 1 1 100%; }
-
-  .wb-summary { margin: 8px 20px 0; padding: 20px 4px 4px; border-top: 2px dashed var(--line); }
-  .wb-summary-row { display: flex; align-items: baseline; justify-content: space-between; }
-  .wb-summary-label { font-size: 13px; color: var(--muted); }
-  .wb-summary-total { font-family: 'Fraunces', serif; font-weight: 600; font-size: 26px; font-variant-numeric: tabular-nums; }
-  .wb-summary-total.wishlist { color: var(--plum); }
-  .wb-summary-total.purchased { color: var(--sage); }
-  .wb-summary-total.transcended { color: var(--zen); }
-  .wb-summary-caption { font-size: 12px; color: var(--muted); margin: 4px 0 0; font-style: italic; }
-
-  .wb-empty { margin: 56px 20px; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.6; }
-
-  .wb-fab {
-    position: fixed; right: 20px; bottom: 24px; width: 56px; height: 56px; border-radius: 50%;
-    background: var(--plum); color: #fff; border: none; box-shadow: 0 8px 18px rgba(60,30,45,.35);
-    display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 25;
-  }
-
-  .wb-overlay { position: fixed; inset: 0; background: rgba(30,26,22,.5); display: flex; align-items: flex-end; justify-content: center; z-index: 40; }
-  .wb-sheet { position: relative; background: var(--paper); width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 18px 20px 28px; max-height: 88vh; overflow-y: auto; }
-  .wb-sheet-handle { width: 40px; height: 4px; background: var(--line); border-radius: 2px; margin: 0 auto 16px; }
-  .wb-sheet h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 21px; margin: 0 0 16px; }
-  .wb-close-x { position: absolute; top: 14px; right: 16px; background: none; border: none; cursor: pointer; color: var(--muted); }
-  .wb-field { margin-bottom: 14px; }
-  .wb-field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
-  .wb-field input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); font-family: 'Space Grotesk', sans-serif; font-size: 14px; background: #fff; color: var(--ink); }
-  .wb-imgmode { display: flex; gap: 8px; margin-bottom: 10px; }
-  .wb-imgmode button { flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font-size: 11.5px; font-weight: 600; cursor: pointer; color: var(--ink); }
-  .wb-imgmode button.active { background: var(--plum); color: #fff; border-color: var(--plum); }
-  .wb-preview { width: 100%; height: 130px; border-radius: 10px; object-fit: cover; margin-top: 8px; border: 1px solid var(--line); }
-  .wb-save-btn { width: 100%; padding: 13px; border-radius: 12px; border: none; background: var(--plum); color: #fff; font-weight: 700; font-size: 14.5px; cursor: pointer; margin-top: 4px; font-family: 'Space Grotesk', sans-serif; }
-  .wb-save-btn:disabled { opacity: .45; cursor: not-allowed; }
-
-  .wb-sheet-actions { display: flex; gap: 8px; margin-top: 4px; }
-  .wb-sheet-actions .wb-save-btn { flex: 2; margin-top: 0; }
-  .wb-cancel-btn {
-    flex: 1; padding: 13px; border-radius: 12px; border: 1px solid var(--line); background: #fff;
-    color: var(--ink); font-weight: 600; font-size: 13.5px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
-  }
-
-  .wb-header-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-  .wb-logout {
-    background: none; border: 1px solid var(--line); color: var(--muted); padding: 7px 12px;
-    border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
-    white-space: nowrap; margin-top: 4px;
-  }
-
-  .wb-root.wb-auth { padding-bottom: 0; display: flex; align-items: center; justify-content: center; }
-  .wb-auth-card {
-    width: 100%; max-width: 380px; background: var(--card); border: 1px solid var(--line);
-    border-radius: 18px; padding: 30px 26px; box-shadow: 0 12px 30px rgba(50,30,40,.10); margin: 24px;
-  }
-  .wb-auth-tabs { display: flex; gap: 6px; margin: 22px 0 20px; border-bottom: 1px solid var(--line); }
-  .wb-auth-tabs button {
-    flex: 1; padding: 10px; background: none; border: none; font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600; font-size: 13.5px; color: var(--muted); cursor: pointer;
-    border-bottom: 2px solid transparent; margin-bottom: -1px;
-  }
-  .wb-auth-tabs button.active { color: var(--plum); border-bottom-color: var(--plum); }
-  .wb-auth-error { font-size: 12.5px; color: #a2453c; margin: -4px 0 12px; line-height: 1.5; }
-  .wb-auth-notice { font-size: 12.5px; color: var(--sage); margin: -4px 0 12px; line-height: 1.5; }
-
-  .wb-link-row { display: flex; gap: 8px; }
-  .wb-link-row input { flex: 1; }
-  .wb-autofill-btn {
-    padding: 0 14px; border-radius: 10px; border: none; background: var(--plum); color: #fff;
-    font-weight: 600; font-size: 12.5px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
-    white-space: nowrap;
-  }
-  .wb-autofill-btn:disabled { opacity: .5; cursor: not-allowed; }
-  .wb-link-hint { font-size: 11.5px; color: var(--muted); margin: 6px 0 0; }
-
-  .wb-cropper-wrap { max-height: 320px; overflow: hidden; background: #1a1414; border-radius: 10px; }
-  .wb-cropper-wrap img { display: block; max-width: 100%; }
-  .wb-cropper-actions { display: flex; gap: 8px; margin-top: 10px; }
-  .wb-cropper-cancel {
-    flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: #fff;
-    color: var(--ink); font-weight: 600; font-size: 13.5px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
-  }
-  .wb-cropper-actions .wb-save-btn { flex: 1; margin-top: 0; }
-
-  .wb-toast {
-    position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%);
-    background: var(--ink); color: var(--paper); padding: 14px 20px; border-radius: 14px;
-    font-size: 13.5px; font-weight: 600; text-align: center; white-space: pre-line; line-height: 1.5;
-    box-shadow: 0 10px 28px rgba(0,0,0,.25); z-index: 60; max-width: 320px;
-    animation: wb-toast-in .25s ease-out, wb-toast-out .3s ease-in 2.9s forwards;
-  }
-  @keyframes wb-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-  @keyframes wb-toast-out { to { opacity: 0; transform: translateX(-50%) translateY(8px); } }
-</style>
+  <style>
+    body {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .masonry-grid {
+      column-count: 2;
+      column-gap: 1rem;
+    }
+    @media (min-width: 768px) {
+      .masonry-grid {
+        column-count: 3;
+      }
+    }
+    @media (min-width: 1024px) {
+      .masonry-grid {
+        column-count: 4;
+      }
+    }
+    .break-inside-avoid {
+      break-inside: avoid;
+    }
+    .toast-enter {
+      animation: fadeInDown 0.3s forwards, fadeOutUp 0.3s 2.7s forwards;
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeOutUp {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-20px); }
+    }
+  </style>
 </head>
-<body>
-<div id="root"></div>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen pb-24">
 
-<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
-<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.3/cropper.min.js"></script>
+  <!-- Toast Notification System -->
+  <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col gap-2 items-center w-11/12 max-w-sm"></div>
 
-<script type="text/babel" data-presets="react">
-const { useState, useEffect, useRef, useCallback } = React;
-
-// ============================================================
-// SUPABASE KEYS
-// The anon key is safe to expose in client code — it only works
-// within the row-level-security rules you set up in Supabase.
-// ============================================================
-const SUPABASE_URL = "https://lmtbauyoljswgllakdzl.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_zfrAYBrFS-q3NGK6gC_W7Q_qZTZqUWO";
-
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-const currency = (n) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
-    Number.isFinite(n) ? n : 0
-  );
-
-const hostnameOf = (url) => {
-  if (!url) return "";
-  try {
-    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
-    return u.hostname.replace(/^www\./, "");
-  } catch {
-    return "";
-  }
-};
-
-// --- link auto-fill: pull og:title / og:image / price out of a product page ---
-// Most shopping sites don't allow direct cross-origin fetches, so this tries the
-// real URL first, then falls back to a public CORS proxy. Best-effort only —
-// the proxy is a free third-party service that can rate-limit or go down.
-function parseMetaFromHtml(html) {
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  const getMeta = (prop) => {
-    const el = doc.querySelector(`meta[property="${prop}"]`) || doc.querySelector(`meta[name="${prop}"]`);
-    return el ? (el.getAttribute("content") || "").trim() : "";
-  };
-
-  const title = getMeta("og:title") || (doc.querySelector("title")?.textContent || "").trim();
-  const image = getMeta("og:image") || getMeta("og:image:url") || getMeta("twitter:image");
-
-  let price = getMeta("product:price:amount") || getMeta("og:price:amount");
-
-  if (!price) {
-    const priceEl = doc.querySelector('[itemprop="price"]');
-    if (priceEl) price = priceEl.getAttribute("content") || priceEl.textContent || "";
-  }
-
-  if (!price) {
-    const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
-    for (const s of scripts) {
-      try {
-        const data = JSON.parse(s.textContent);
-        const candidates = Array.isArray(data) ? data : [data];
-        for (const item of candidates) {
-          const graph = item["@graph"] || [item];
-          for (const node of graph) {
-            const offers = node && node.offers;
-            if (offers) {
-              const offer = Array.isArray(offers) ? offers[0] : offers;
-              if (offer && offer.price) { price = offer.price; break; }
-            }
-          }
-          if (price) break;
-        }
-      } catch {
-        // not valid JSON-LD — skip it
-      }
-      if (price) break;
-    }
-  }
-
-  return {
-    title: title || "",
-    image: image || "",
-    price: price ? String(price).replace(/[^0-9.]/g, "") : "",
-  };
-}
-
-async function fetchProductDetails(rawUrl) {
-  const url = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
-  const timeoutSignal = () =>
-    typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(9000) : undefined;
-
-  const attempts = [url, `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`];
-
-  let lastError = new Error("Couldn't fetch that link.");
-  for (const attemptUrl of attempts) {
-    try {
-      const res = await fetch(attemptUrl, { signal: timeoutSignal() });
-      if (!res.ok) throw new Error("Request failed");
-      const html = await res.text();
-      const meta = parseMetaFromHtml(html);
-      if (meta.title || meta.image || meta.price) return meta;
-      lastError = new Error("No usable details found on that page.");
-    } catch (err) {
-      lastError = err;
-    }
-  }
-  throw lastError;
-}
-
-// --- tiny inline icons (no external icon dependency) ---
-const Icon = ({ d, size = 16, ...rest }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...rest}>
-    <path d={d} />
-  </svg>
-);
-const PlusIcon = (p) => <Icon d="M12 5v14M5 12h14" {...p} />;
-const XIcon = (p) => <Icon d="M18 6 6 18M6 6l12 12" {...p} />;
-const LinkIcon = (p) => <Icon d="M10 13a5 5 0 007.07 0l1.93-1.93a5 5 0 00-7.07-7.07L10.5 5.5M14 11a5 5 0 00-7.07 0L5 12.93a5 5 0 007.07 7.07L13.5 18.5" {...p} />;
-const UploadIcon = (p) => <Icon d="M12 3v12m0-12 4 4m-4-4-4 4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" {...p} />;
-const BagIcon = (p) => <Icon d="M6 7h12l1 14H5L6 7zM9 7a3 3 0 016 0" {...p} />;
-const UndoIcon = (p) => <Icon d="M9 14 4 9l5-5M4 9h10a5 5 0 015 5v1" {...p} />;
-const TrashIcon = (p) => <Icon d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v6M14 11v6" {...p} />;
-const ReleaseIcon = (p) => <Icon d="M12 3c0 6-7 7-7 13a7 7 0 0014 0c0-6-7-7-7-13z" {...p} />;
-
-const PURCHASE_MESSAGES = [
-  "BUY BUY BUY BUY.",
-  "My purpose is enfolding.",
-  "You have acquired the object.",
-  "The desire has become possession.",
-  "Consumption achieved.",
-];
-const TRANSCEND_MESSAGES = [
-  "You have transcended this desire.",
-  "Desire acknowledged. Desire released.",
-  "You wanted it. You did not need it. You are free.",
-  "Congratulations. You have renounced the object.",
-  "Attachment is suffering. Anyway, you didn't buy it.",
-  "The desire arose. The desire passed. The item remains online.",
-];
-const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
-
-function useWishboardData(userId) {
-  const [items, setItems] = useState([]);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    if (!userId) { setItems([]); setLoaded(true); return; }
-    let cancelled = false;
-    setLoaded(false);
-    supabaseClient
-      .from("items")
-      .select("*")
-      .eq("user_id", userId)
-      .order("added_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (!error && data) setItems(data);
-        setLoaded(true);
-      });
-    return () => { cancelled = true; };
-  }, [userId]);
-
-  const addItem = useCallback(async (item) => {
-    const { data, error } = await supabaseClient
-      .from("items")
-      .insert({ ...item, user_id: userId })
-      .select()
-      .single();
-    if (error) throw error;
-    setItems((prev) => [data, ...prev]);
-  }, [userId]);
-
-  const deleteItem = useCallback(async (id) => {
-    const prevItems = items;
-    setItems((prev) => prev.filter((i) => i.id !== id)); // optimistic
-    const { error } = await supabaseClient.from("items").delete().eq("id", id);
-    if (error) {
-      setItems(prevItems); // roll back if the server delete actually failed
-      alert("Couldn't delete that item — please try again.");
-    }
-  }, [items]);
-
-  const moveItem = useCallback(async (id, status) => {
-    const purchased_at = status === "purchased" ? new Date().toISOString() : null;
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, status, purchased_at } : i))); // optimistic
-    await supabaseClient.from("items").update({ status, purchased_at }).eq("id", id);
-  }, []);
-
-  return { items, addItem, deleteItem, moveItem, loaded };
-}
-
-function PriceTag({ value }) {
-  return <div className="wb-price-tag">{currency(value)}</div>;
-}
-
-function ItemCard({ item, onMove, onDelete }) {
-  const [imgError, setImgError] = useState(false);
-  const initial = (item.title || "?").trim().charAt(0).toUpperCase();
-
-  const handleDelete = () => {
-    if (window.confirm(`Delete "${item.title}"? This can't be undone.`)) {
-      onDelete(item.id);
-    }
-  };
-
-  return (
-    <div className="wb-card">
-      <button className="wb-delete" onClick={handleDelete} aria-label="Delete item">
-        <TrashIcon size={13} />
+  <!-- Sticky Top Bar (Nav & Budget Overview) -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-slate-900">Wishboard</h1>
+        <div id="sticky-top-summary" class="text-xs font-semibold text-slate-500">
+          Total Desired: <span id="top-total-val" class="text-slate-900 font-bold">$0.00</span>
+          <span id="top-subtext" class="text-slate-400 font-normal ml-1">(before taxes)</span>
+        </div>
+      </div>
+      <button onclick="openPinModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-full shadow-md transition-all active:scale-95 flex items-center justify-center">
+        <i class="fa-solid font-bold fa-plus text-base"></i>
       </button>
-      <div className="wb-imgwrap">
-        {item.image && !imgError ? (
-          <img src={item.image} alt={item.title} onError={() => setImgError(true)} />
-        ) : (
-          <div className="wb-placeholder"><span>{initial}</span></div>
-        )}
-        <PriceTag value={item.price} />
-      </div>
-      <div className="wb-body">
-        <p className="wb-item-title">{item.title}</p>
-        {item.link ? (
-          <a className="wb-item-source" href={item.link} target="_blank" rel="noreferrer">
-            {hostnameOf(item.link) || "view item"}
-          </a>
-        ) : (
-          <p className="wb-item-source">&nbsp;</p>
-        )}
-        <div className="wb-item-actions">
-          {item.status === "wishlist" ? (
-            <>
-              <button className="wb-btn-move to-purchased" onClick={() => onMove(item.id, "purchased")}>
-                <BagIcon size={13} /> Purchased
-              </button>
-              <button className="wb-btn-move to-transcended" onClick={() => onMove(item.id, "transcended")}>
-                <ReleaseIcon size={13} /> Transcend
-              </button>
-            </>
-          ) : (
-            <button className="wb-btn-move to-wishlist" onClick={() => onMove(item.id, "wishlist")}>
-              <UndoIcon size={13} /> Move back
-            </button>
-          )}
-        </div>
-      </div>
     </div>
-  );
-}
 
-function AddItemSheet({ open, onClose, onAdd }) {
-  const [imgMode, setImgMode] = useState("url");
-  const [imageUrl, setImageUrl] = useState("");
-  const [uploadedImage, setUploadedImage] = useState("");
-  const [title, setTitle] = useState("");
-  const [price, setPrice] = useState("");
-  const [link, setLink] = useState("");
-  const fileRef = useRef(null);
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState("");
-
-  // --- link auto-fill state ---
-  const [fetchingLink, setFetchingLink] = useState(false);
-  const [linkFetchError, setLinkFetchError] = useState("");
-
-  // --- crop state ---
-  const [rawImage, setRawImage] = useState(""); // freshly-picked, not-yet-cropped photo
-  const cropperImgRef = useRef(null);
-  const cropperRef = useRef(null); // holds the live Cropper instance
-
-  const destroyCropper = () => {
-    if (cropperRef.current) {
-      cropperRef.current.destroy();
-      cropperRef.current = null;
-    }
-  };
-
-  const reset = () => {
-    setImgMode("url"); setImageUrl(""); setUploadedImage("");
-    setTitle(""); setPrice(""); setLink(""); setSaveError("");
-    setLinkFetchError(""); setFetchingLink(false);
-    destroyCropper();
-    setRawImage("");
-  };
-
-  const handleFile = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setRawImage(reader.result); // goes to the cropper, not straight to uploadedImage
-    reader.readAsDataURL(file);
-  };
-
-  const handleCropperImgLoad = () => {
-    destroyCropper();
-    if (cropperImgRef.current && window.Cropper) {
-      cropperRef.current = new window.Cropper(cropperImgRef.current, {
-        aspectRatio: 1,
-        viewMode: 1,
-        autoCropArea: 1,
-        background: false,
-        responsive: true,
-      });
-    }
-  };
-
-  const applyCrop = () => {
-    if (!cropperRef.current) return;
-    const canvas = cropperRef.current.getCroppedCanvas({ width: 800, height: 800 });
-    if (canvas) {
-      setUploadedImage(canvas.toDataURL("image/jpeg", 0.85));
-      setImgMode("upload");
-    }
-    destroyCropper();
-    setRawImage("");
-  };
-
-  const cancelCrop = () => {
-    destroyCropper();
-    setRawImage("");
-    if (fileRef.current) fileRef.current.value = "";
-  };
-
-  const handleAutoFill = async (urlOverride) => {
-    const target = (urlOverride || link).trim();
-    if (!target || fetchingLink) return;
-    setFetchingLink(true);
-    setLinkFetchError("");
-    try {
-      const meta = await fetchProductDetails(target);
-      if (meta.title) setTitle(meta.title);
-      if (meta.image) { setImgMode("url"); setImageUrl(meta.image); }
-      if (meta.price) setPrice(meta.price);
-      if (!meta.title && !meta.image && !meta.price) {
-        setLinkFetchError("Found the page, but no usable details on it — fill these in yourself.");
-      }
-    } catch (err) {
-      setLinkFetchError("Couldn't auto-fill from that link — the site may block this, or check the URL.");
-    } finally {
-      setFetchingLink(false);
-    }
-  };
-
-  const handleLinkPaste = (e) => {
-    const pasted = e.clipboardData.getData("text");
-    if (pasted && pasted.trim().startsWith("http")) {
-      setTimeout(() => handleAutoFill(pasted.trim()), 50);
-    }
-  };
-
-  const canSave = title.trim().length > 0 && !saving;
-
-  const hasUnsavedInput = () =>
-    Boolean(title.trim() || price || link.trim() || imageUrl.trim() || uploadedImage || rawImage);
-
-  const requestClose = () => {
-    if (hasUnsavedInput()) {
-      if (window.confirm("Are you sure you want to discard this pin?")) {
-        reset();
-        onClose();
-      }
-      // otherwise: user said no, leave the sheet open exactly as it was
-    } else {
-      reset();
-      onClose();
-    }
-  };
-
-  const handleSave = async () => {
-    if (!canSave) return;
-    setSaving(true);
-    setSaveError("");
-    try {
-      await onAdd({
-        title: title.trim(),
-        price: parseFloat(price) || 0,
-        image: imgMode === "upload" ? uploadedImage : imageUrl.trim(),
-        link: link.trim(),
-        status: "wishlist",
-      });
-      reset();
-      onClose();
-    } catch (err) {
-      setSaveError(err.message || "Couldn't save this item — try again.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!open) destroyCropper();
-  }, [open]);
-
-  if (!open) return null;
-  const preview = imgMode === "upload" ? uploadedImage : imageUrl;
-
-  return (
-    <div className="wb-overlay" onClick={requestClose}>
-      <div className="wb-sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="wb-sheet-handle" />
-        <button className="wb-close-x" onClick={requestClose} aria-label="Close"><XIcon size={20} /></button>
-        <h2>Pin something new</h2>
-
-        <div className="wb-field">
-          <label>Link to the product (optional)</label>
-          <div className="wb-link-row">
-            <input
-              type="text"
-              placeholder="https://store.com/product"
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              onPaste={handleLinkPaste}
-            />
-            <button
-              type="button"
-              className="wb-autofill-btn"
-              disabled={!link.trim() || fetchingLink}
-              onClick={() => handleAutoFill()}
-            >
-              {fetchingLink ? "Fetching…" : "Auto-fill"}
-            </button>
-          </div>
-          <p className="wb-link-hint">
-            {fetchingLink
-              ? "Looking up the title, photo, and price…"
-              : "Paste a product link, then tap Auto-fill to grab its title, photo, and price."}
-          </p>
-          {linkFetchError ? <p className="wb-auth-error" style={{ marginTop: 6 }}>{linkFetchError}</p> : null}
-        </div>
-
-        <div className="wb-field">
-          <label>Photo</label>
-          {rawImage ? (
-            <>
-              <div className="wb-cropper-wrap">
-                <img ref={cropperImgRef} src={rawImage} onLoad={handleCropperImgLoad} alt="Crop preview" />
-              </div>
-              <div className="wb-cropper-actions">
-                <button type="button" className="wb-cropper-cancel" onClick={cancelCrop}>Cancel</button>
-                <button type="button" className="wb-save-btn" onClick={applyCrop}>Use this crop</button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="wb-imgmode">
-                <button className={imgMode === "url" ? "active" : ""} onClick={() => setImgMode("url")} type="button">
-                  <LinkIcon size={13} style={{ marginRight: 5, verticalAlign: -2 }} /> Paste image link
-                </button>
-                <button className={imgMode === "upload" ? "active" : ""} onClick={() => setImgMode("upload")} type="button">
-                  <UploadIcon size={13} style={{ marginRight: 5, verticalAlign: -2 }} /> Upload photo
-                </button>
-              </div>
-              {imgMode === "url" ? (
-                <input type="text" placeholder="https://example.com/photo.jpg" value={imageUrl}
-                       onChange={(e) => setImageUrl(e.target.value)} />
-              ) : (
-                <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} />
-              )}
-              {preview ? <img className="wb-preview" src={preview} alt="Preview" /> : null}
-            </>
-          )}
-        </div>
-
-        <div className="wb-field">
-          <label>What is it?</label>
-          <input type="text" placeholder="e.g. Sherpa fleece jacket" value={title}
-                 onChange={(e) => setTitle(e.target.value)} />
-        </div>
-
-        <div className="wb-field">
-          <label>Price</label>
-          <input type="number" inputMode="decimal" step="0.01" min="0" placeholder="0.00" value={price}
-                 onChange={(e) => setPrice(e.target.value)} />
-        </div>
-
-        <div className="wb-sheet-actions">
-          <button type="button" className="wb-cancel-btn" onClick={requestClose}>Cancel</button>
-          <button className="wb-save-btn" disabled={!canSave} onClick={handleSave}>
-            <PlusIcon size={16} style={{ verticalAlign: -3, marginRight: 4 }} /> {saving ? "Saving…" : "Add to wishlist"}
-          </button>
-        </div>
-        {saveError ? <p className="wb-auth-error" style={{ marginTop: 10, marginBottom: 0 }}>{saveError}</p> : null}
-      </div>
-    </div>
-  );
-}
-
-function Toast({ message, onDone }) {
-  useEffect(() => {
-    const t = setTimeout(onDone, 3200);
-    return () => clearTimeout(t);
-  }, [message]);
-  if (!message) return null;
-  return <div className="wb-toast">{message}</div>;
-}
-
-function Wishboard({ userId, userEmail }) {
-  const { items, addItem, deleteItem, moveItem, loaded } = useWishboardData(userId);
-  const [tab, setTab] = useState("wishlist");
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [toastMsg, setToastMsg] = useState("");
-  const [toastKey, setToastKey] = useState(0);
-
-  const showToast = (msg) => { setToastMsg(msg); setToastKey((k) => k + 1); };
-
-  const handleMove = async (id, status) => {
-    const item = items.find((i) => i.id === id);
-    await moveItem(id, status);
-    if (status === "purchased") {
-      showToast(pickRandom(PURCHASE_MESSAGES));
-    } else if (status === "transcended") {
-      const amt = item ? Number(item.price) || 0 : 0;
-      showToast(`${pickRandom(TRANSCEND_MESSAGES)}\n+${currency(amt)} saved through detachment`);
-    }
-  };
-
-  const wishlist = items.filter((i) => i.status === "wishlist");
-  const purchased = items.filter((i) => i.status === "purchased");
-  const transcended = items.filter((i) => i.status === "transcended");
-  const wishlistTotal = wishlist.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
-  const purchasedTotal = purchased.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
-  const transcendedTotal = transcended.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
-
-  const visible = tab === "wishlist" ? wishlist : tab === "purchased" ? purchased : transcended;
-
-  const subtitle =
-    tab === "wishlist" ? "Pin what you want. Watch what it costs."
-    : tab === "purchased" ? "The desire has become possession."
-    : "\u201cAll conditioned things are impermanent.\u201d \u2014 Dhammapada";
-
-  const emptyText =
-    tab === "wishlist" ? "Nothing pinned yet. Tap the + to add the first thing you're eyeing."
-    : tab === "purchased" ? "Nothing acquired yet. The consumer journey awaits."
-    : "Nothing transcended yet. Desire still has its claws in you.";
-
-  const summaryLabel =
-    tab === "wishlist" ? "Wishlist total" : tab === "purchased" ? "Total spent" : "Saved through detachment";
-  const summaryTotal = tab === "wishlist" ? wishlistTotal : tab === "purchased" ? purchasedTotal : transcendedTotal;
-
-  return (
-    <div className="wb-root">
-      <div className="wb-header">
-        <div className="wb-header-top">
-          <div>
-            <h1 className="wb-title">Wishboard</h1>
-            <p className="wb-subtitle">{subtitle}</p>
-          </div>
-          <button className="wb-logout" onClick={() => supabaseClient.auth.signOut()}>
-            Log out
-          </button>
-        </div>
-      </div>
-
-      <div className="wb-tabs">
-        <div className={`wb-tab ${tab === "wishlist" ? "active-wishlist" : ""}`} onClick={() => setTab("wishlist")}>
-          Wishlist <span className="wb-count">{wishlist.length}</span>
-        </div>
-        <div className={`wb-tab ${tab === "purchased" ? "active-purchased" : ""}`} onClick={() => setTab("purchased")}>
-          Purchased <span className="wb-count">{purchased.length}</span>
-        </div>
-        <div className={`wb-tab ${tab === "transcended" ? "active-transcended" : ""}`} onClick={() => setTab("transcended")}>
-          Transcended <span className="wb-count">{transcended.length}</span>
-        </div>
-      </div>
-      <div className="wb-tabline" />
-
-      {loaded && visible.length === 0 ? (
-        <div className="wb-empty">{emptyText}</div>
-      ) : (
-        <div className="wb-grid">
-          {visible.map((item) => (
-            <ItemCard key={item.id} item={item} onMove={handleMove} onDelete={deleteItem} />
-          ))}
-        </div>
-      )}
-
-      {visible.length > 0 && (
-        <div className="wb-summary">
-          <div className="wb-summary-row">
-            <span className="wb-summary-label">{summaryLabel}</span>
-            <span className={`wb-summary-total ${tab}`}>{currency(summaryTotal)}</span>
-          </div>
-          {tab === "transcended" ? <p className="wb-summary-caption">Your wallet thanks you.</p> : null}
-        </div>
-      )}
-
-      <button className="wb-fab" onClick={() => setSheetOpen(true)} aria-label="Add item">
-        <PlusIcon size={26} />
+    <!-- Navigation Tabs -->
+    <div class="max-w-4xl mx-auto px-4 flex gap-2 overflow-x-auto pb-2 scrollbar-none" id="tabs-bar">
+      <button onclick="switchTab('wishlist')" id="tab-wishlist" class="tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-slate-900 text-white">
+        Wishlist
       </button>
-
-      <AddItemSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onAdd={addItem} />
-      <Toast key={toastKey} message={toastMsg} onDone={() => setToastMsg("")} />
+      <button onclick="switchTab('purchased')" id="tab-purchased" class="tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+        Purchased
+      </button>
+      <button onclick="switchTab('transcended')" id="tab-transcended" class="tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+        Transcended
+      </button>
     </div>
-  );
-}
+  </header>
 
-function AuthScreen() {
-  const [mode, setMode] = useState("login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-  const [busy, setBusy] = useState(false);
+  <!-- Main Pin Masonry Display -->
+  <main class="max-w-4xl mx-auto px-4 pt-4">
+    <div id="pins-grid" class="masonry-grid"></div>
+    <div id="empty-state" class="hidden text-center py-16 text-slate-400">
+      <i class="fa-regular fa-folder-open text-4xl mb-2"></i>
+      <p id="empty-state-text" class="text-sm">No items in this state. The urge is sleeping.</p>
+    </div>
+  </main>
 
-  const switchMode = (m) => { setMode(m); setError(""); setNotice(""); };
+  <!-- Bottom Sticky Summary Bar -->
+  <div class="fixed bottom-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-md border-t border-slate-200 py-3 px-4">
+    <div class="max-w-4xl mx-auto flex items-center justify-between text-sm">
+      <span id="bottom-summary-label" class="font-bold text-slate-700">Wishlist Total:</span>
+      <div class="text-right">
+        <span id="bottom-summary-val" class="font-black text-slate-900 text-base">$0.00</span>
+        <div id="bottom-summary-subtext" class="text-[10px] text-slate-400">before taxes</div>
+      </div>
+    </div>
+  </div>
 
-  const submit = async () => {
-    if (!email.trim() || !password || busy) return;
-    setBusy(true);
-    setError("");
-    setNotice("");
-    try {
-      if (mode === "login") {
-        const { error } = await supabaseClient.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabaseClient.auth.signUp({
-          email: email.trim(),
-          password,
-        });
-        if (error) throw error;
-        if (data.user && !data.session) {
-          setNotice("Check your email to confirm your account, then log in.");
-        }
-      }
-    } catch (err) {
-      setError(err.message || "Something went wrong.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className="wb-root wb-auth">
-      <div className="wb-auth-card">
-        <h1 className="wb-title">Wishboard</h1>
-        <p className="wb-subtitle">Pin what you want. Watch what it costs.</p>
-
-        <div className="wb-auth-tabs">
-          <button className={mode === "login" ? "active" : ""} onClick={() => switchMode("login")} type="button">
-            Log in
-          </button>
-          <button className={mode === "signup" ? "active" : ""} onClick={() => switchMode("signup")} type="button">
-            Sign up
-          </button>
-        </div>
-
-        <div className="wb-field">
-          <label>Email</label>
-          <input
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        <div className="wb-field">
-          <label>Password</label>
-          <input
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-          />
-        </div>
-
-        {error ? <p className="wb-auth-error">{error}</p> : null}
-        {notice ? <p className="wb-auth-notice">{notice}</p> : null}
-
-        <button className="wb-save-btn" disabled={busy || !email.trim() || !password} onClick={submit}>
-          {busy ? "Please wait…" : mode === "login" ? "Log in" : "Create account"}
+  <!-- Entry / Edit Pin Modal Sheet -->
+  <div id="pin-modal" class="fixed inset-0 z-40 hidden flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 sm:p-4">
+    <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+      <!-- Modal Header -->
+      <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+        <h3 id="modal-title" class="font-bold text-slate-800 text-base">Pin Something New</h3>
+        <button onclick="requestDiscard()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
-    </div>
-  );
-}
 
-function App() {
-  const [session, setSession] = useState(undefined); // undefined = checking, null = signed out
+      <!-- Form Inputs -->
+      <div class="p-4 overflow-y-auto space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Item Title *</label>
+          <input type="text" id="pin-title" placeholder="What is your heart craving?" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
 
-  useEffect(() => {
-    supabaseClient.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: listener } = supabaseClient.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-    return () => listener.subscription.unsubscribe();
-  }, []);
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Price ($) *</label>
+            <input type="number" step="0.01" id="pin-price" placeholder="0.00" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Status</label>
+            <select id="pin-status" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="wishlist">Wishlist (Desire)</option>
+              <option value="purchased">Purchased (Consumed)</option>
+              <option value="transcended">Transcended (Detached)</option>
+            </select>
+          </div>
+        </div>
 
-  if (session === undefined) {
-    return (
-      <div className="wb-root wb-auth">
-        <p className="wb-subtitle">Loading…</p>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Product URL Link</label>
+          <input type="url" id="pin-url" placeholder="https://" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+
+        <!-- Photo Selection: Upload Left, Link Right -->
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Image Options</label>
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <label class="border border-slate-200 rounded-lg p-2.5 text-center cursor-pointer hover:bg-slate-50 transition-colors">
+              <i class="fa-solid fa-upload text-indigo-600 mb-1 block"></i>
+              <span class="text-xs font-bold text-slate-700">Upload Photo</span>
+              <input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleFileSelect(event)" />
+            </label>
+            <div class="border border-slate-200 rounded-lg p-2.5 text-center cursor-pointer hover:bg-slate-50 transition-colors" onclick="toggleLinkInput()">
+              <i class="fa-solid fa-link text-indigo-600 mb-1 block"></i>
+              <span class="text-xs font-bold text-slate-700">Paste Image Link</span>
+            </div>
+          </div>
+          <input type="url" id="image-url-input" placeholder="Paste direct image link..." class="hidden w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2" onchange="handleImageUrlInput(this.value)" />
+
+          <!-- Cropper Container -->
+          <div id="cropper-wrapper" class="hidden max-h-64 overflow-hidden rounded-lg bg-slate-900 mb-2">
+            <img id="cropper-image" class="max-w-full" />
+          </div>
+          <button id="crop-btn" onclick="applyCrop()" class="hidden w-full py-1.5 bg-slate-800 text-white text-xs font-bold rounded-lg mb-2">Apply Freeform Crop</button>
+
+          <!-- Image Preview -->
+          <div id="preview-wrapper" class="hidden relative rounded-lg overflow-hidden border border-slate-200 max-h-48 flex justify-center bg-slate-100">
+            <img id="image-preview" class="object-contain max-h-48" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Notes / Philosophical Musings</label>
+          <textarea id="pin-notes" rows="2" placeholder="Why do you crave this earthly object?" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
       </div>
-    );
-  }
 
-  if (!session) return <AuthScreen />;
+      <!-- Action Footer -->
+      <div class="p-4 border-t border-slate-100 bg-slate-50 flex gap-2">
+        <button onclick="requestDiscard()" class="w-1/3 py-2.5 border border-slate-300 rounded-lg font-bold text-xs text-slate-600 hover:bg-slate-100">Cancel</button>
+        <button onclick="savePin()" class="w-2/3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs shadow-sm">Save Pin</button>
+      </div>
+    </div>
+  </div>
 
-  return <Wishboard userId={session.user.id} userEmail={session.user.email} />;
-}
+  <!-- Pinterest-Style Full Screen Detail Zoom View Modal -->
+  <div id="zoom-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4" onclick="closeZoomModal(event)">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+      <div id="zoom-image-container" class="bg-slate-100 max-h-96 flex justify-center items-center overflow-hidden border-b border-slate-100">
+        <img id="zoom-img" class="w-full object-cover max-h-96" />
+      </div>
+      <div class="p-5">
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <h2 id="zoom-title" class="text-lg font-bold text-slate-900 leading-tight"></h2>
+          <span id="zoom-price" class="text-lg font-black text-indigo-600"></span>
+        </div>
+        <p id="zoom-notes" class="text-xs text-slate-600 mb-4 italic"></p>
+        
+        <div class="flex flex-wrap gap-2 mb-4">
+          <button onclick="updatePinState('wishlist')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700">Move to Wishlist</button>
+          <button onclick="updatePinState('purchased')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 hover:bg-emerald-200 text-emerald-800">Move to Purchased</button>
+          <button onclick="updatePinState('transcended')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white">Transcend Item</button>
+        </div>
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-</script>
+        <div class="flex justify-between items-center border-t border-slate-100 pt-3">
+          <a id="zoom-link" href="#" target="_blank" class="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Visit Product Link
+          </a>
+          <button onclick="deleteActivePin()" class="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1">
+            <i class="fa-solid fa-trash"></i> Delete Pin
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Discard Confirmation Overlay -->
+  <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/40 p-4">
+    <div class="bg-white rounded-xl p-5 max-w-xs w-full text-center space-y-3 shadow-xl">
+      <h4 class="font-bold text-slate-800 text-sm">Discard changes?</h4>
+      <p class="text-xs text-slate-500">Are you sure you want to discard this pin?</p>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeConfirmModal()" class="w-1/2 py-2 border border-slate-200 text-slate-600 rounded-lg text-xs font-bold">Keep Editing</button>
+        <button onclick="confirmDiscard()" class="w-1/2 py-2 bg-rose-600 text-white rounded-lg text-xs font-bold">Discard</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Supabase Credentials
+    const SUPABASE_URL = "https://lmtbauyoljswgllakdzl.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_zfrAYBrFS-q3NGK6gC_W7Q_qZTZqUWO";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // State Variables
+    let items = [];
+    let activeTab = 'wishlist';
+    let cropperInstance = null;
+    let currentImageBase64 = '';
+    let activePinId = null;
+
+    // Toast Copy Pools (STRICT 2–7 WORDS)
+    const COPY_POOLS = {
+      wishlist: [
+        "Desire persists.", "You still want this.", "What does this say?", "Your character is tested.",
+        "Is this desire worth it?", "The economy wants this.", "The shareholders are watching.",
+        "Capitalism has noticed you.", "Someone manufactured this desire.", "You were not born wanting this.",
+        "Who benefits from your longing?", "The algorithm approves.", "You seek fulfillment. Interesting.",
+        "Material desire detected.", "The craving remains.", "You are still tempted.",
+        "Desire has entered the chat.", "The cart awaits.", "The object calls.", "You have been marketed to."
+      ],
+      purchased: [
+        "BUY BUY BUY BUY.", "Spend spend spend.", "YES GIRL. SPEND.", "Consumption achieved.",
+        "Purchase complete.", "Capitalism wins.", "The economy thanks you.", "Shareholders are thrilled.",
+        "Economic activity detected.", "You acquired the object.", "Desire became possession.",
+        "Your desire was monetized.", "Purchasing power activated.", "Money became merchandise.",
+        "The cart has prevailed.", "Capitalism welcomes you.", "The system is pleased.", "A purchase has occurred."
+      ],
+      transcended: [
+        "Desire...Transcended! - Darling", "Desire released.", "You chose freedom.", "You resisted.",
+        "You walked away.", "Attachment dissolved.", "The desire passed.", "You are free.",
+        "You have transcended.", "Desire acknowledged. Desire released.", "You chose detachment.",
+        "Materialism defeated.", "The craving has passed.", "You survived temptation.", "Attachment: -1.",
+        "Possession: avoided.", "Money: saved.", "Capitalism: resisted.", "The urge has passed.",
+        "You leave empty-handed.", "Enlightenment achieved.", "Earthly desire: denied.", "The object is released."
+      ],
+      relapse: [
+        "Oh… you’re doing this again?", "You were free.", "You were doing so well.", "What happened?",
+        "Wasn’t liberation nice?", "Your liberation was temporary.", "Enlightenment postponed.",
+        "You have returned to desire.", "The desire has returned.", "Attachment has returned.",
+        "You chose to want again.", "You reopened the door.", "The material world welcomes you.",
+        "Capitalism welcomes you back.", "The cart awaits.", "The corporation remembers you.",
+        "The algorithm called you back.", "Attachment re-entered the chat.", "We literally transcended this.",
+        "Girl. We just left.", "You were FREE.", "And yet, you returned.", "The craving returns.",
+        "Transcendence has failed.", "The shareholders are pleased."
+      ]
+    };
+
+    // App Initialization
+    window.addEventListener('DOMContentLoaded', async () => {
+      await fetchItems();
+    });
+
+    async function fetchItems() {
+      const { data, error } = await db.from('items').select('*').order('created_at', { ascending: false });
+      if (!error && data) {
+        items = data;
+        renderGrid();
+      }
+    }
+
+    function switchTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = 'tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200';
+      });
+      document.getElementById(`tab-${tab}`).className = 'tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-slate-900 text-white';
+      renderGrid();
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('pins-grid');
+      const emptyState = document.getElementById('empty-state');
+      grid.innerHTML = '';
+
+      const filtered = items.filter(item => item.status === activeTab);
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+        filtered.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'break-inside-avoid mb-4 bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100 cursor-pointer hover:shadow-md transition-all';
+          card.onclick = () => openZoomModal(item);
+
+          card.innerHTML = `
+            ${item.image_url ? `<img src="${item.image_url}" class="w-full object-cover" />` : ''}
+            <div class="p-3">
+              <h4 class="font-bold text-slate-800 text-xs line-clamp-2">${item.title}</h4>
+              <div class="flex justify-between items-center mt-2">
+                <span class="text-xs font-black text-indigo-600">$${parseFloat(item.price || 0).toFixed(2)}</span>
+                <span class="text-[10px] font-bold text-slate-400 capitalize">${item.status}</span>
+              </div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+      updateBudgetSummaries();
+    }
+
+    function updateBudgetSummaries() {
+      const filtered = items.filter(item => item.status === activeTab);
+      const sum = filtered.reduce((acc, curr) => acc + (parseFloat(curr.price) || 0), 0);
+      const formattedSum = `$${sum.toFixed(2)}`;
+
+      const topVal = document.getElementById('top-total-val');
+      const topSub = document.getElementById('top-subtext');
+      const botLabel = document.getElementById('bottom-summary-label');
+      const botVal = document.getElementById('bottom-summary-val');
+      const botSub = document.getElementById('bottom-summary-subtext');
+
+      if (activeTab === 'wishlist') {
+        topVal.innerText = formattedSum;
+        topSub.innerText = '(before taxes)';
+        botLabel.innerText = 'Wishlist Total:';
+        botVal.innerText = formattedSum;
+        botSub.innerText = 'before taxes';
+      } else if (activeTab === 'purchased') {
+        topVal.innerText = formattedSum;
+        topSub.innerText = '(spent in total)';
+        botLabel.innerText = 'Total Consumed:';
+        botVal.innerText = formattedSum;
+        botSub.innerText = 'spent in total';
+      } else if (activeTab === 'transcended') {
+        topVal.innerText = formattedSum;
+        topSub.innerText = '(saved through detachment)';
+        botLabel.innerText = 'Saved Through Detachment:';
+        botVal.innerText = formattedSum;
+        botSub.innerText = 'Your wallet has attained liberation.';
+      }
+    }
+
+    // Modal Control & Cleansing Logic
+    function openPinModal() {
+      resetModalForm();
+      document.getElementById('pin-modal').classList.remove('hidden');
+    }
+
+    function requestDiscard() {
+      document.getElementById('confirm-modal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirm-modal').classList.add('hidden');
+    }
+
+    function confirmDiscard() {
+      closeConfirmModal();
+      resetModalForm();
+      document.getElementById('pin-modal').classList.add('hidden');
+    }
+
+    function resetModalForm() {
+      document.getElementById('pin-title').value = '';
+      document.getElementById('pin-price').value = '';
+      document.getElementById('pin-url').value = '';
+      document.getElementById('pin-notes').value = '';
+      document.getElementById('pin-status').value = activeTab;
+      document.getElementById('file-input').value = '';
+      document.getElementById('image-url-input').value = '';
+      document.getElementById('image-url-input').classList.add('hidden');
+      document.getElementById('preview-wrapper').classList.add('hidden');
+      document.getElementById('crop-btn').classList.add('hidden');
+      document.getElementById('cropper-wrapper').classList.add('hidden');
+      currentImageBase64 = '';
+      if (cropperInstance) {
+        cropperInstance.destroy();
+        cropperInstance = null;
+      }
+    }
+
+    // Image Uploading & Freeform Cropping
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => initCropper(event.target.result);
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function toggleLinkInput() {
+      const input = document.getElementById('image-url-input');
+      input.classList.toggle('hidden');
+    }
+
+    function handleImageUrlInput(val) {
+      if (val) initCropper(val);
+    }
+
+    function initCropper(src) {
+      const wrapper = document.getElementById('cropper-wrapper');
+      const img = document.getElementById('cropper-image');
+      wrapper.classList.remove('hidden');
+      document.getElementById('crop-btn').classList.remove('hidden');
+      img.src = src;
+
+      if (cropperInstance) cropperInstance.destroy();
+      cropperInstance = new Cropper(img, {
+        aspectRatio: NaN, // Freeform aspect ratio
+        viewMode: 1
+      });
+    }
+
+    function applyCrop() {
+      if (!cropperInstance) return;
+      const canvas = cropperInstance.getCroppedCanvas();
+      currentImageBase64 = canvas.toDataURL('image/jpeg');
+      
+      document.getElementById('cropper-wrapper').classList.add('hidden');
+      document.getElementById('crop-btn').classList.add('hidden');
+      
+      const previewWrapper = document.getElementById('preview-wrapper');
+      const previewImg = document.getElementById('image-preview');
+      previewImg.src = currentImageBase64;
+      previewWrapper.classList.remove('hidden');
+    }
+
+    // Pin Persistence & State Transitions
+    async function savePin() {
+      const title = document.getElementById('pin-title').value.trim();
+      const price = parseFloat(document.getElementById('pin-price').value) || 0;
+      const status = document.getElementById('pin-status').value;
+      const link_url = document.getElementById('pin-url').value.trim();
+      const notes = document.getElementById('pin-notes').value.trim();
+
+      if (!title) return alert('Title is required!');
+
+      const newItem = {
+        title,
+        price,
+        status,
+        link_url,
+        notes,
+        image_url: currentImageBase64
+      };
+
+      const { data, error } = await db.from('items').insert([newItem]).select();
+      if (!error && data) {
+        items.unshift(data[0]);
+        triggerToast(status);
+        confirmDiscard();
+        renderGrid();
+      }
+    }
+
+    // Full-Screen Zoom Modal
+    function openZoomModal(item) {
+      activePinId = item.id;
+      document.getElementById('zoom-img').src = item.image_url || '';
+      document.getElementById('zoom-title').innerText = item.title;
+      document.getElementById('zoom-price').innerText = `$${parseFloat(item.price || 0).toFixed(2)}`;
+      document.getElementById('zoom-notes').innerText = item.notes ? `"${item.notes}"` : '';
+      document.getElementById('zoom-link').href = item.link_url || '#';
+      document.getElementById('zoom-modal').classList.remove('hidden');
+    }
+
+    function closeZoomModal(e) {
+      document.getElementById('zoom-modal').classList.add('hidden');
+      activePinId = null;
+    }
+
+    async function updatePinState(newStatus) {
+      if (!activePinId) return;
+      const item = items.find(i => i.id === activePinId);
+      if (!item) return;
+
+      const previousStatus = item.status;
+      item.status = newStatus;
+
+      await db.from('items').update({ status: newStatus }).eq('id', activePinId);
+
+      // Trigger narrative punchline if falling back from Transcended to Wishlist
+      if (previousStatus === 'transcended' && newStatus === 'wishlist') {
+        triggerToast('relapse');
+      } else {
+        triggerToast(newStatus);
+      }
+
+      closeZoomModal();
+      renderGrid();
+    }
+
+    async function deleteActivePin() {
+      if (!activePinId) return;
+      await db.from('items').delete().eq('id', activePinId);
+      items = items.filter(i => i.id !== activePinId);
+      closeZoomModal();
+      renderGrid();
+    }
+
+    // Toast System (Random Selection)
+    function triggerToast(type) {
+      const container = document.getElementById('toast-container');
+      const pool = COPY_POOLS[type] || COPY_POOLS.wishlist;
+      const message = pool[Math.floor(Math.random() * pool.length)];
+
+      const toast = document.createElement('div');
+      toast.className = 'toast-enter bg-slate-900/90 backdrop-blur-md text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg border border-slate-700/50 text-center';
+      toast.innerText = message;
+
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+  </script>
 </body>
 </html>
