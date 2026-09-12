@@ -17,6 +17,7 @@
     --plum: #5B3A4B;
     --gold: #C08A28;
     --sage: #6E8266;
+    --zen: #6E7F9E;
     --line: #E1D8C4;
     --card: #FFFDF9;
     font-family: 'Space Grotesk', sans-serif;
@@ -32,7 +33,7 @@
   .wb-title { font-family: 'Fraunces', serif; font-style: italic; font-weight: 600; font-size: 30px; margin: 0; letter-spacing: -0.01em; }
   .wb-subtitle { font-size: 13px; color: var(--muted); margin: 5px 0 0; }
 
-  .wb-tabs { display: flex; gap: 6px; margin: 22px 20px 0; }
+  .wb-tabs { display: flex; gap: 6px; margin: 22px 20px 0; flex-wrap: wrap; }
   .wb-tab {
     padding: 10px 14px 12px; border-radius: 12px 12px 0 0; font-size: 13.5px; font-weight: 600;
     cursor: pointer; border: 1px solid var(--line); border-bottom: none; background: #EAE2CE; color: var(--muted);
@@ -41,6 +42,7 @@
   .wb-tab .wb-count { margin-left: 6px; font-size: 11.5px; opacity: .65; }
   .wb-tab.active-wishlist { background: var(--card); color: var(--plum); box-shadow: 0 -3px 0 var(--plum) inset; }
   .wb-tab.active-purchased { background: var(--card); color: var(--sage); box-shadow: 0 -3px 0 var(--sage) inset; }
+  .wb-tab.active-transcended { background: var(--card); color: var(--zen); box-shadow: 0 -3px 0 var(--zen) inset; }
   .wb-tabline { height: 1px; background: var(--line); margin: 0 20px; }
 
   .wb-grid { column-count: 2; column-gap: 14px; padding: 18px 20px 0; }
@@ -73,19 +75,24 @@
   }
   .wb-item-source[href] { color: #7d6a8f; }
 
+  .wb-item-actions { display: flex; flex-wrap: wrap; gap: 6px; }
   .wb-btn-move {
-    font-family: 'Space Grotesk', sans-serif; font-size: 11.5px; font-weight: 600; padding: 7px 10px;
+    font-family: 'Space Grotesk', sans-serif; font-size: 11.5px; font-weight: 600; padding: 7px 8px;
     border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
-    width: 100%; justify-content: center;
+    flex: 1; justify-content: center; min-width: 0;
   }
   .wb-btn-move.to-purchased { background: var(--sage); color: #fff; }
-  .wb-btn-move.to-wishlist { background: #EDE6D6; color: var(--ink); }
+  .wb-btn-move.to-transcended { background: var(--zen); color: #fff; }
+  .wb-btn-move.to-wishlist { background: #EDE6D6; color: var(--ink); flex: 1 1 100%; }
 
-  .wb-summary { margin: 8px 20px 0; padding: 20px 4px 4px; border-top: 2px dashed var(--line); display: flex; align-items: baseline; justify-content: space-between; }
+  .wb-summary { margin: 8px 20px 0; padding: 20px 4px 4px; border-top: 2px dashed var(--line); }
+  .wb-summary-row { display: flex; align-items: baseline; justify-content: space-between; }
   .wb-summary-label { font-size: 13px; color: var(--muted); }
   .wb-summary-total { font-family: 'Fraunces', serif; font-weight: 600; font-size: 26px; font-variant-numeric: tabular-nums; }
   .wb-summary-total.wishlist { color: var(--plum); }
   .wb-summary-total.purchased { color: var(--sage); }
+  .wb-summary-total.transcended { color: var(--zen); }
+  .wb-summary-caption { font-size: 12px; color: var(--muted); margin: 4px 0 0; font-style: italic; }
 
   .wb-empty { margin: 56px 20px; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.6; }
 
@@ -109,6 +116,13 @@
   .wb-preview { width: 100%; height: 130px; border-radius: 10px; object-fit: cover; margin-top: 8px; border: 1px solid var(--line); }
   .wb-save-btn { width: 100%; padding: 13px; border-radius: 12px; border: none; background: var(--plum); color: #fff; font-weight: 700; font-size: 14.5px; cursor: pointer; margin-top: 4px; font-family: 'Space Grotesk', sans-serif; }
   .wb-save-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+  .wb-sheet-actions { display: flex; gap: 8px; margin-top: 4px; }
+  .wb-sheet-actions .wb-save-btn { flex: 2; margin-top: 0; }
+  .wb-cancel-btn {
+    flex: 1; padding: 13px; border-radius: 12px; border: 1px solid var(--line); background: #fff;
+    color: var(--ink); font-weight: 600; font-size: 13.5px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+  }
 
   .wb-header-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
   .wb-logout {
@@ -150,6 +164,16 @@
     color: var(--ink); font-weight: 600; font-size: 13.5px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
   }
   .wb-cropper-actions .wb-save-btn { flex: 1; margin-top: 0; }
+
+  .wb-toast {
+    position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper); padding: 14px 20px; border-radius: 14px;
+    font-size: 13.5px; font-weight: 600; text-align: center; white-space: pre-line; line-height: 1.5;
+    box-shadow: 0 10px 28px rgba(0,0,0,.25); z-index: 60; max-width: 320px;
+    animation: wb-toast-in .25s ease-out, wb-toast-out .3s ease-in 2.9s forwards;
+  }
+  @keyframes wb-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+  @keyframes wb-toast-out { to { opacity: 0; transform: translateX(-50%) translateY(8px); } }
 </style>
 </head>
 <body>
@@ -278,6 +302,24 @@ const UploadIcon = (p) => <Icon d="M12 3v12m0-12 4 4m-4-4-4 4M4 17v2a2 2 0 002 2
 const BagIcon = (p) => <Icon d="M6 7h12l1 14H5L6 7zM9 7a3 3 0 016 0" {...p} />;
 const UndoIcon = (p) => <Icon d="M9 14 4 9l5-5M4 9h10a5 5 0 015 5v1" {...p} />;
 const TrashIcon = (p) => <Icon d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v6M14 11v6" {...p} />;
+const ReleaseIcon = (p) => <Icon d="M12 3c0 6-7 7-7 13a7 7 0 0014 0c0-6-7-7-7-13z" {...p} />;
+
+const PURCHASE_MESSAGES = [
+  "BUY BUY BUY BUY.",
+  "My purpose is enfolding.",
+  "You have acquired the object.",
+  "The desire has become possession.",
+  "Consumption achieved.",
+];
+const TRANSCEND_MESSAGES = [
+  "You have transcended this desire.",
+  "Desire acknowledged. Desire released.",
+  "You wanted it. You did not need it. You are free.",
+  "Congratulations. You have renounced the object.",
+  "Attachment is suffering. Anyway, you didn't buy it.",
+  "The desire arose. The desire passed. The item remains online.",
+];
+const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 function useWishboardData(userId) {
   const [items, setItems] = useState([]);
@@ -367,9 +409,14 @@ function ItemCard({ item, onMove, onDelete }) {
         )}
         <div className="wb-item-actions">
           {item.status === "wishlist" ? (
-            <button className="wb-btn-move to-purchased" onClick={() => onMove(item.id, "purchased")}>
-              <BagIcon size={13} /> Mark purchased
-            </button>
+            <>
+              <button className="wb-btn-move to-purchased" onClick={() => onMove(item.id, "purchased")}>
+                <BagIcon size={13} /> Purchased
+              </button>
+              <button className="wb-btn-move to-transcended" onClick={() => onMove(item.id, "transcended")}>
+                <ReleaseIcon size={13} /> Transcend
+              </button>
+            </>
           ) : (
             <button className="wb-btn-move to-wishlist" onClick={() => onMove(item.id, "wishlist")}>
               <UndoIcon size={13} /> Move back
@@ -528,10 +575,10 @@ function AddItemSheet({ open, onClose, onAdd }) {
   const preview = imgMode === "upload" ? uploadedImage : imageUrl;
 
   return (
-    <div className="wb-overlay" onClick={onClose}>
+    <div className="wb-overlay" onClick={requestClose}>
       <div className="wb-sheet" onClick={(e) => e.stopPropagation()}>
         <div className="wb-sheet-handle" />
-        <button className="wb-close-x" onClick={onClose} aria-label="Close"><XIcon size={20} /></button>
+        <button className="wb-close-x" onClick={requestClose} aria-label="Close"><XIcon size={20} /></button>
         <h2>Pin something new</h2>
 
         <div className="wb-field">
@@ -606,25 +653,69 @@ function AddItemSheet({ open, onClose, onAdd }) {
                  onChange={(e) => setPrice(e.target.value)} />
         </div>
 
-        <button className="wb-save-btn" disabled={!canSave} onClick={handleSave}>
-          <PlusIcon size={16} style={{ verticalAlign: -3, marginRight: 4 }} /> {saving ? "Saving…" : "Add to wishlist"}
-        </button>
+        <div className="wb-sheet-actions">
+          <button type="button" className="wb-cancel-btn" onClick={requestClose}>Cancel</button>
+          <button className="wb-save-btn" disabled={!canSave} onClick={handleSave}>
+            <PlusIcon size={16} style={{ verticalAlign: -3, marginRight: 4 }} /> {saving ? "Saving…" : "Add to wishlist"}
+          </button>
+        </div>
         {saveError ? <p className="wb-auth-error" style={{ marginTop: 10, marginBottom: 0 }}>{saveError}</p> : null}
       </div>
     </div>
   );
 }
 
+function Toast({ message, onDone }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 3200);
+    return () => clearTimeout(t);
+  }, [message]);
+  if (!message) return null;
+  return <div className="wb-toast">{message}</div>;
+}
+
 function Wishboard({ userId, userEmail }) {
   const { items, addItem, deleteItem, moveItem, loaded } = useWishboardData(userId);
   const [tab, setTab] = useState("wishlist");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
+  const [toastKey, setToastKey] = useState(0);
+
+  const showToast = (msg) => { setToastMsg(msg); setToastKey((k) => k + 1); };
+
+  const handleMove = async (id, status) => {
+    const item = items.find((i) => i.id === id);
+    await moveItem(id, status);
+    if (status === "purchased") {
+      showToast(pickRandom(PURCHASE_MESSAGES));
+    } else if (status === "transcended") {
+      const amt = item ? Number(item.price) || 0 : 0;
+      showToast(`${pickRandom(TRANSCEND_MESSAGES)}\n+${currency(amt)} saved through detachment`);
+    }
+  };
 
   const wishlist = items.filter((i) => i.status === "wishlist");
   const purchased = items.filter((i) => i.status === "purchased");
+  const transcended = items.filter((i) => i.status === "transcended");
   const wishlistTotal = wishlist.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
   const purchasedTotal = purchased.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
-  const visible = tab === "wishlist" ? wishlist : purchased;
+  const transcendedTotal = transcended.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+
+  const visible = tab === "wishlist" ? wishlist : tab === "purchased" ? purchased : transcended;
+
+  const subtitle =
+    tab === "wishlist" ? "Pin what you want. Watch what it costs."
+    : tab === "purchased" ? "The desire has become possession."
+    : "\u201cAll conditioned things are impermanent.\u201d \u2014 Dhammapada";
+
+  const emptyText =
+    tab === "wishlist" ? "Nothing pinned yet. Tap the + to add the first thing you're eyeing."
+    : tab === "purchased" ? "Nothing acquired yet. The consumer journey awaits."
+    : "Nothing transcended yet. Desire still has its claws in you.";
+
+  const summaryLabel =
+    tab === "wishlist" ? "Wishlist total" : tab === "purchased" ? "Total spent" : "Saved through detachment";
+  const summaryTotal = tab === "wishlist" ? wishlistTotal : tab === "purchased" ? purchasedTotal : transcendedTotal;
 
   return (
     <div className="wb-root">
@@ -632,7 +723,7 @@ function Wishboard({ userId, userEmail }) {
         <div className="wb-header-top">
           <div>
             <h1 className="wb-title">Wishboard</h1>
-            <p className="wb-subtitle">Pin what you want. Watch what it costs.</p>
+            <p className="wb-subtitle">{subtitle}</p>
           </div>
           <button className="wb-logout" onClick={() => supabaseClient.auth.signOut()}>
             Log out
@@ -647,29 +738,29 @@ function Wishboard({ userId, userEmail }) {
         <div className={`wb-tab ${tab === "purchased" ? "active-purchased" : ""}`} onClick={() => setTab("purchased")}>
           Purchased <span className="wb-count">{purchased.length}</span>
         </div>
+        <div className={`wb-tab ${tab === "transcended" ? "active-transcended" : ""}`} onClick={() => setTab("transcended")}>
+          Transcended <span className="wb-count">{transcended.length}</span>
+        </div>
       </div>
       <div className="wb-tabline" />
 
       {loaded && visible.length === 0 ? (
-        <div className="wb-empty">
-          {tab === "wishlist"
-            ? "Nothing pinned yet. Tap the + to add the first thing you're eyeing."
-            : "Nothing purchased yet. Items you mark as bought will land here."}
-        </div>
+        <div className="wb-empty">{emptyText}</div>
       ) : (
         <div className="wb-grid">
           {visible.map((item) => (
-            <ItemCard key={item.id} item={item} onMove={moveItem} onDelete={deleteItem} />
+            <ItemCard key={item.id} item={item} onMove={handleMove} onDelete={deleteItem} />
           ))}
         </div>
       )}
 
       {visible.length > 0 && (
         <div className="wb-summary">
-          <span className="wb-summary-label">{tab === "wishlist" ? "Wishlist total" : "Total spent"}</span>
-          <span className={`wb-summary-total ${tab}`}>
-            {currency(tab === "wishlist" ? wishlistTotal : purchasedTotal)}
-          </span>
+          <div className="wb-summary-row">
+            <span className="wb-summary-label">{summaryLabel}</span>
+            <span className={`wb-summary-total ${tab}`}>{currency(summaryTotal)}</span>
+          </div>
+          {tab === "transcended" ? <p className="wb-summary-caption">Your wallet thanks you.</p> : null}
         </div>
       )}
 
@@ -678,6 +769,7 @@ function Wishboard({ userId, userEmail }) {
       </button>
 
       <AddItemSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onAdd={addItem} />
+      <Toast key={toastKey} message={toastMsg} onDone={() => setToastMsg("")} />
     </div>
   );
 }
