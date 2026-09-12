@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Wishboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.3/cropper.min.css" rel="stylesheet" />
 <style>
   html, body { margin: 0; padding: 0; }
   .wb-root {
@@ -58,10 +58,11 @@
     font-variant-numeric: tabular-nums;
   }
   .wb-delete {
-    position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border-radius: 50%;
-    background: rgba(20,17,14,.5); color: #fff; border: none; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; z-index: 2;
+    position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(178,42,42,.88); color: #fff; border: none; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 2; transition: background .15s;
   }
+  .wb-delete:hover { background: rgba(150,32,32,.95); }
 
   .wb-body { padding: 20px 12px 12px; }
   .wb-item-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; margin: 0 0 4px; }
@@ -129,6 +130,25 @@
   .wb-auth-tabs button.active { color: var(--plum); border-bottom-color: var(--plum); }
   .wb-auth-error { font-size: 12.5px; color: #a2453c; margin: -4px 0 12px; line-height: 1.5; }
   .wb-auth-notice { font-size: 12.5px; color: var(--sage); margin: -4px 0 12px; line-height: 1.5; }
+
+  .wb-link-row { display: flex; gap: 8px; }
+  .wb-link-row input { flex: 1; }
+  .wb-autofill-btn {
+    padding: 0 14px; border-radius: 10px; border: none; background: var(--plum); color: #fff;
+    font-weight: 600; font-size: 12.5px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+    white-space: nowrap;
+  }
+  .wb-autofill-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .wb-link-hint { font-size: 11.5px; color: var(--muted); margin: 6px 0 0; }
+
+  .wb-cropper-wrap { max-height: 320px; overflow: hidden; background: #1a1414; border-radius: 10px; }
+  .wb-cropper-wrap img { display: block; max-width: 100%; }
+  .wb-cropper-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .wb-cropper-cancel {
+    flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: #fff;
+    color: var(--ink); font-weight: 600; font-size: 13.5px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+  }
+  .wb-cropper-actions .wb-save-btn { flex: 1; margin-top: 0; }
 </style>
 </head>
 <body>
@@ -138,6 +158,7 @@
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.3/cropper.min.js"></script>
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useCallback } = React;
@@ -167,6 +188,81 @@ const hostnameOf = (url) => {
   }
 };
 
+// --- link auto-fill: pull og:title / og:image / price out of a product page ---
+// Most shopping sites don't allow direct cross-origin fetches, so this tries the
+// real URL first, then falls back to a public CORS proxy. Best-effort only —
+// the proxy is a free third-party service that can rate-limit or go down.
+function parseMetaFromHtml(html) {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const getMeta = (prop) => {
+    const el = doc.querySelector(`meta[property="${prop}"]`) || doc.querySelector(`meta[name="${prop}"]`);
+    return el ? (el.getAttribute("content") || "").trim() : "";
+  };
+
+  const title = getMeta("og:title") || (doc.querySelector("title")?.textContent || "").trim();
+  const image = getMeta("og:image") || getMeta("og:image:url") || getMeta("twitter:image");
+
+  let price = getMeta("product:price:amount") || getMeta("og:price:amount");
+
+  if (!price) {
+    const priceEl = doc.querySelector('[itemprop="price"]');
+    if (priceEl) price = priceEl.getAttribute("content") || priceEl.textContent || "";
+  }
+
+  if (!price) {
+    const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
+    for (const s of scripts) {
+      try {
+        const data = JSON.parse(s.textContent);
+        const candidates = Array.isArray(data) ? data : [data];
+        for (const item of candidates) {
+          const graph = item["@graph"] || [item];
+          for (const node of graph) {
+            const offers = node && node.offers;
+            if (offers) {
+              const offer = Array.isArray(offers) ? offers[0] : offers;
+              if (offer && offer.price) { price = offer.price; break; }
+            }
+          }
+          if (price) break;
+        }
+      } catch {
+        // not valid JSON-LD — skip it
+      }
+      if (price) break;
+    }
+  }
+
+  return {
+    title: title || "",
+    image: image || "",
+    price: price ? String(price).replace(/[^0-9.]/g, "") : "",
+  };
+}
+
+async function fetchProductDetails(rawUrl) {
+  const url = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
+  const timeoutSignal = () =>
+    typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(9000) : undefined;
+
+  const attempts = [url, `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`];
+
+  let lastError = new Error("Couldn't fetch that link.");
+  for (const attemptUrl of attempts) {
+    try {
+      const res = await fetch(attemptUrl, { signal: timeoutSignal() });
+      if (!res.ok) throw new Error("Request failed");
+      const html = await res.text();
+      const meta = parseMetaFromHtml(html);
+      if (meta.title || meta.image || meta.price) return meta;
+      lastError = new Error("No usable details found on that page.");
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError;
+}
+
 // --- tiny inline icons (no external icon dependency) ---
 const Icon = ({ d, size = 16, ...rest }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -180,6 +276,7 @@ const LinkIcon = (p) => <Icon d="M10 13a5 5 0 007.07 0l1.93-1.93a5 5 0 00-7.07-7
 const UploadIcon = (p) => <Icon d="M12 3v12m0-12 4 4m-4-4-4 4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" {...p} />;
 const BagIcon = (p) => <Icon d="M6 7h12l1 14H5L6 7zM9 7a3 3 0 016 0" {...p} />;
 const UndoIcon = (p) => <Icon d="M9 14 4 9l5-5M4 9h10a5 5 0 015 5v1" {...p} />;
+const TrashIcon = (p) => <Icon d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v6M14 11v6" {...p} />;
 
 function useWishboardData(userId) {
   const [items, setItems] = useState([]);
@@ -213,9 +310,14 @@ function useWishboardData(userId) {
   }, [userId]);
 
   const deleteItem = useCallback(async (id) => {
+    const prevItems = items;
     setItems((prev) => prev.filter((i) => i.id !== id)); // optimistic
-    await supabaseClient.from("items").delete().eq("id", id);
-  }, []);
+    const { error } = await supabaseClient.from("items").delete().eq("id", id);
+    if (error) {
+      setItems(prevItems); // roll back if the server delete actually failed
+      alert("Couldn't delete that item — please try again.");
+    }
+  }, [items]);
 
   const moveItem = useCallback(async (id, status) => {
     const purchased_at = status === "purchased" ? new Date().toISOString() : null;
@@ -234,10 +336,16 @@ function ItemCard({ item, onMove, onDelete }) {
   const [imgError, setImgError] = useState(false);
   const initial = (item.title || "?").trim().charAt(0).toUpperCase();
 
+  const handleDelete = () => {
+    if (window.confirm(`Delete "${item.title}"? This can't be undone.`)) {
+      onDelete(item.id);
+    }
+  };
+
   return (
     <div className="wb-card">
-      <button className="wb-delete" onClick={() => onDelete(item.id)} aria-label="Remove item">
-        <XIcon size={14} />
+      <button className="wb-delete" onClick={handleDelete} aria-label="Delete item">
+        <TrashIcon size={13} />
       </button>
       <div className="wb-imgwrap">
         {item.image && !imgError ? (
@@ -283,17 +391,93 @@ function AddItemSheet({ open, onClose, onAdd }) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
+  // --- link auto-fill state ---
+  const [fetchingLink, setFetchingLink] = useState(false);
+  const [linkFetchError, setLinkFetchError] = useState("");
+
+  // --- crop state ---
+  const [rawImage, setRawImage] = useState(""); // freshly-picked, not-yet-cropped photo
+  const cropperImgRef = useRef(null);
+  const cropperRef = useRef(null); // holds the live Cropper instance
+
+  const destroyCropper = () => {
+    if (cropperRef.current) {
+      cropperRef.current.destroy();
+      cropperRef.current = null;
+    }
+  };
+
   const reset = () => {
     setImgMode("url"); setImageUrl(""); setUploadedImage("");
     setTitle(""); setPrice(""); setLink(""); setSaveError("");
+    setLinkFetchError(""); setFetchingLink(false);
+    destroyCropper();
+    setRawImage("");
   };
 
   const handleFile = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setUploadedImage(reader.result);
+    reader.onload = () => setRawImage(reader.result); // goes to the cropper, not straight to uploadedImage
     reader.readAsDataURL(file);
+  };
+
+  const handleCropperImgLoad = () => {
+    destroyCropper();
+    if (cropperImgRef.current && window.Cropper) {
+      cropperRef.current = new window.Cropper(cropperImgRef.current, {
+        aspectRatio: 1,
+        viewMode: 1,
+        autoCropArea: 1,
+        background: false,
+        responsive: true,
+      });
+    }
+  };
+
+  const applyCrop = () => {
+    if (!cropperRef.current) return;
+    const canvas = cropperRef.current.getCroppedCanvas({ width: 800, height: 800 });
+    if (canvas) {
+      setUploadedImage(canvas.toDataURL("image/jpeg", 0.85));
+      setImgMode("upload");
+    }
+    destroyCropper();
+    setRawImage("");
+  };
+
+  const cancelCrop = () => {
+    destroyCropper();
+    setRawImage("");
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const handleAutoFill = async (urlOverride) => {
+    const target = (urlOverride || link).trim();
+    if (!target || fetchingLink) return;
+    setFetchingLink(true);
+    setLinkFetchError("");
+    try {
+      const meta = await fetchProductDetails(target);
+      if (meta.title) setTitle(meta.title);
+      if (meta.image) { setImgMode("url"); setImageUrl(meta.image); }
+      if (meta.price) setPrice(meta.price);
+      if (!meta.title && !meta.image && !meta.price) {
+        setLinkFetchError("Found the page, but no usable details on it — fill these in yourself.");
+      }
+    } catch (err) {
+      setLinkFetchError("Couldn't auto-fill from that link — the site may block this, or check the URL.");
+    } finally {
+      setFetchingLink(false);
+    }
+  };
+
+  const handleLinkPaste = (e) => {
+    const pasted = e.clipboardData.getData("text");
+    if (pasted && pasted.trim().startsWith("http")) {
+      setTimeout(() => handleAutoFill(pasted.trim()), 50);
+    }
   };
 
   const canSave = title.trim().length > 0 && !saving;
@@ -319,6 +503,10 @@ function AddItemSheet({ open, onClose, onAdd }) {
     }
   };
 
+  useEffect(() => {
+    if (!open) destroyCropper();
+  }, [open]);
+
   if (!open) return null;
   const preview = imgMode === "upload" ? uploadedImage : imageUrl;
 
@@ -330,22 +518,63 @@ function AddItemSheet({ open, onClose, onAdd }) {
         <h2>Pin something new</h2>
 
         <div className="wb-field">
-          <label>Photo</label>
-          <div className="wb-imgmode">
-            <button className={imgMode === "url" ? "active" : ""} onClick={() => setImgMode("url")} type="button">
-              <LinkIcon size={13} style={{ marginRight: 5, verticalAlign: -2 }} /> Paste image link
-            </button>
-            <button className={imgMode === "upload" ? "active" : ""} onClick={() => setImgMode("upload")} type="button">
-              <UploadIcon size={13} style={{ marginRight: 5, verticalAlign: -2 }} /> Upload photo
+          <label>Link to the product (optional)</label>
+          <div className="wb-link-row">
+            <input
+              type="text"
+              placeholder="https://store.com/product"
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              onPaste={handleLinkPaste}
+            />
+            <button
+              type="button"
+              className="wb-autofill-btn"
+              disabled={!link.trim() || fetchingLink}
+              onClick={() => handleAutoFill()}
+            >
+              {fetchingLink ? "Fetching…" : "Auto-fill"}
             </button>
           </div>
-          {imgMode === "url" ? (
-            <input type="text" placeholder="https://example.com/photo.jpg" value={imageUrl}
-                   onChange={(e) => setImageUrl(e.target.value)} />
+          <p className="wb-link-hint">
+            {fetchingLink
+              ? "Looking up the title, photo, and price…"
+              : "Paste a product link, then tap Auto-fill to grab its title, photo, and price."}
+          </p>
+          {linkFetchError ? <p className="wb-auth-error" style={{ marginTop: 6 }}>{linkFetchError}</p> : null}
+        </div>
+
+        <div className="wb-field">
+          <label>Photo</label>
+          {rawImage ? (
+            <>
+              <div className="wb-cropper-wrap">
+                <img ref={cropperImgRef} src={rawImage} onLoad={handleCropperImgLoad} alt="Crop preview" />
+              </div>
+              <div className="wb-cropper-actions">
+                <button type="button" className="wb-cropper-cancel" onClick={cancelCrop}>Cancel</button>
+                <button type="button" className="wb-save-btn" onClick={applyCrop}>Use this crop</button>
+              </div>
+            </>
           ) : (
-            <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} />
+            <>
+              <div className="wb-imgmode">
+                <button className={imgMode === "url" ? "active" : ""} onClick={() => setImgMode("url")} type="button">
+                  <LinkIcon size={13} style={{ marginRight: 5, verticalAlign: -2 }} /> Paste image link
+                </button>
+                <button className={imgMode === "upload" ? "active" : ""} onClick={() => setImgMode("upload")} type="button">
+                  <UploadIcon size={13} style={{ marginRight: 5, verticalAlign: -2 }} /> Upload photo
+                </button>
+              </div>
+              {imgMode === "url" ? (
+                <input type="text" placeholder="https://example.com/photo.jpg" value={imageUrl}
+                       onChange={(e) => setImageUrl(e.target.value)} />
+              ) : (
+                <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} />
+              )}
+              {preview ? <img className="wb-preview" src={preview} alt="Preview" /> : null}
+            </>
           )}
-          {preview ? <img className="wb-preview" src={preview} alt="Preview" /> : null}
         </div>
 
         <div className="wb-field">
@@ -358,12 +587,6 @@ function AddItemSheet({ open, onClose, onAdd }) {
           <label>Price</label>
           <input type="number" inputMode="decimal" step="0.01" min="0" placeholder="0.00" value={price}
                  onChange={(e) => setPrice(e.target.value)} />
-        </div>
-
-        <div className="wb-field">
-          <label>Link to the product (optional)</label>
-          <input type="text" placeholder="https://store.com/product" value={link}
-                 onChange={(e) => setLink(e.target.value)} />
         </div>
 
         <button className="wb-save-btn" disabled={!canSave} onClick={handleSave}>
