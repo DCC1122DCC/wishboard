@@ -47,6 +47,7 @@
     min-height: 100vh;
     padding-bottom: 100px;
     box-sizing: border-box;
+    cursor: url('icons/wand-cursor.svg') 26 6, auto;
   }
   .wb-root *, .wb-root *::before, .wb-root *::after { box-sizing: border-box; }
 
@@ -83,9 +84,9 @@
   .wb-root[data-theme="surreal"] {
     --paper: #F2DFAE; --ink: #2B1B0E; --muted: #8A6A3D; --plum: #0E7C93; --gold: #C97A2B;
     --sage: #1E9EC2; --zen: #D9622E; --line: rgba(120,70,20,.3); --card: #FFF6E6;
-    --radius-card: 26px; --radius-tab: 18px; --radius-sheet: 30px; --radius-btn: 20px;
+    --radius-card: 12px; --radius-tab: 18px; --radius-sheet: 30px; --radius-btn: 20px;
     --radius-small: 14px; --radius-field: 16px; --radius-auth: 26px;
-    --shadow-card: 16px 20px 0 -4px rgba(180,90,30,.28), 30px 34px 46px -10px rgba(14,90,110,.32);
+    --shadow-card: 0 6px 16px -4px rgba(180,90,30,.28), 0 10px 22px -8px rgba(14,90,110,.28);
     --shadow-fab: 0 12px 26px rgba(201,122,43,.45); --shadow-auth: 0 16px 34px rgba(14,90,110,.22);
     --font-display: 'Fraunces', serif; --font-body: 'Space Grotesk', sans-serif;
     --x-color: #B08655;
@@ -108,26 +109,29 @@
         #55301A 100%);
     background-attachment: fixed;
   }
+  /* Cards: clean, readable rounded rectangles at rest — the "melt" only ever
+     happens as a hover transition, never as the card's resting shape. */
   .wb-root[data-theme="surreal"] .wb-card {
-    border-radius: 38% 62% 41% 59% / 24% 46% 54% 76%;
-    transition: transform .4s ease, box-shadow .4s ease, border-radius .4s ease;
+    border-radius: var(--radius-card);
+    transform-origin: center bottom;
+    transition: transform 1.6s cubic-bezier(.34,.2,.4,1),
+                box-shadow 1.6s cubic-bezier(.34,.2,.4,1),
+                border-radius 1.6s cubic-bezier(.34,.2,.4,1);
   }
-  .wb-root[data-theme="surreal"] .wb-card:nth-of-type(3n) { transform: rotate(1deg); }
-  .wb-root[data-theme="surreal"] .wb-card:nth-of-type(4n) { transform: rotate(-1.3deg); }
-  .wb-root[data-theme="surreal"] .wb-card:nth-of-type(5n) { transform: rotate(0.6deg); }
   .wb-root[data-theme="surreal"] .wb-card:hover {
-    transform: translateY(-7px) rotate(0deg) scale(1.015);
-    border-radius: 55% 45% 62% 38% / 40% 60% 35% 65%;
-    box-shadow: 22px 30px 0 -6px rgba(180,90,30,.32), 40px 50px 62px -10px rgba(14,90,110,.4);
+    /* subtle liquid droop: soft skew + asymmetric radius + slight downward stretch */
+    transform: translateY(3px) scaleY(1.03) skewX(-1.2deg);
+    border-radius: 46% 54% 38% 62% / 30% 32% 68% 70%;
+    box-shadow: 0 16px 26px -6px rgba(180,90,30,.34), 0 22px 34px -10px rgba(14,90,110,.36);
   }
   .wb-root[data-theme="surreal"] .wb-title { font-size: 40px; letter-spacing: -0.01em; }
   .wb-root[data-theme="surreal"] .wb-sheet h2,
   .wb-root[data-theme="surreal"] .wb-detail-title { font-style: italic; }
   .wb-root[data-theme="surreal"] .wb-tab { background: #E9CE96; }
-  .wb-root[data-theme="surreal"] .wb-tab.active-wishlist { border-radius: 30px 8px 0 0; }
-  .wb-root[data-theme="surreal"] .wb-tab.active-purchased { border-radius: 10px 26px 0 0; }
-  .wb-root[data-theme="surreal"] .wb-tab.active-transcended { border-radius: 24px 14px 0 0; }
-  .wb-root[data-theme="surreal"] .wb-tab.active-custom { border-radius: 16px 24px 0 0; }
+  .wb-root[data-theme="surreal"] .wb-tab.active-wishlist { border-radius: 16px 6px 0 0; }
+  .wb-root[data-theme="surreal"] .wb-tab.active-purchased { border-radius: 6px 16px 0 0; }
+  .wb-root[data-theme="surreal"] .wb-tab.active-transcended { border-radius: 12px 8px 0 0; }
+  .wb-root[data-theme="surreal"] .wb-tab.active-custom { border-radius: 10px 14px 0 0; }
   .wb-root[data-theme="surreal"] .wb-imgwrap img {
     filter: sepia(.35) saturate(1.55) contrast(1.1);
     transition: filter .35s ease;
@@ -142,6 +146,16 @@
   }
   .wb-root[data-theme="surreal"] .wb-delete.wb-delete-quiet {
     border-radius: 38% 62% 55% 45% / 55% 40% 60% 45%;
+  }
+  /* Bright, luminous text for key readability elements against the deep sky/sand gradient */
+  .wb-root[data-theme="surreal"] .wb-subtitle {
+    color: #FFF3C4;
+    text-shadow: 0 1px 6px rgba(40,20,5,.45);
+  }
+  .wb-root[data-theme="surreal"] .wb-header-meta p {
+    color: #FFE9A8;
+    opacity: .95;
+    text-shadow: 0 1px 5px rgba(40,20,5,.4);
   }
 
   .wb-badge {
@@ -225,8 +239,6 @@
   @media (min-width: 960px) { .wb-grid { column-count: 4; } }
 
   .wb-card { break-inside: avoid; margin-bottom: 14px; background: var(--card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); overflow: hidden; border: 1px solid var(--line); position: relative; transition: transform .25s ease, box-shadow .25s ease; }
-  .wb-card[draggable="true"] { cursor: grab; }
-  .wb-card:active { cursor: grabbing; }
   .wb-imgwrap { position: relative; background: #ECE4D2; cursor: pointer; }
   .wb-imgwrap img { width: 100%; display: block; object-fit: cover; }
   .wb-placeholder { width: 100%; aspect-ratio: 4 / 5; background: linear-gradient(160deg, var(--plum), #7d5468); display: flex; align-items: center; justify-content: center; }
@@ -585,12 +597,17 @@ function OliveTreeMeltingClock() {
           <stop offset="0%" stopColor="#6B4423" />
           <stop offset="100%" stopColor="#3E2A14" />
         </linearGradient>
+        <linearGradient id="wbClockBlue" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#9FCBE0" />
+          <stop offset="55%" stopColor="#3E7A9E" />
+          <stop offset="100%" stopColor="#204A63" />
+        </linearGradient>
       </defs>
 
       {/* ground shadow */}
       <ellipse cx="160" cy="122" rx="140" ry="6" fill="rgba(60,35,15,0.18)" />
 
-      {/* gnarled trunk + reaching branch */}
+      {/* gnarled, dead/bare olive branch reaching across the scene */}
       <path
         d="M46,128 C40,100 46,78 58,64 C50,54 52,40 62,30
            C70,40 68,52 60,62 C74,50 92,46 110,50
@@ -601,37 +618,31 @@ function OliveTreeMeltingClock() {
         d="M58,64 C66,72 70,86 66,100 C64,110 58,120 50,128"
         fill="none" stroke="url(#wbOliveBark)" strokeWidth="5" strokeLinecap="round"
       />
+      {/* a few small bare twig offshoots, sparse — a dead branch, not a leafy tree */}
+      <path d="M112,50 C116,44 122,42 128,44" fill="none" stroke="url(#wbOliveBark)" strokeWidth="3" strokeLinecap="round" />
+      <path d="M200,49 C204,44 210,42 215,44" fill="none" stroke="url(#wbOliveBark)" strokeWidth="3" strokeLinecap="round" />
+      <path d="M64,32 C68,26 74,24 79,26" fill="none" stroke="url(#wbOliveBark)" strokeWidth="3" strokeLinecap="round" />
 
-      {/* olive leaf clusters */}
-      <g fill="#7C8B52" opacity="0.9">
-        <ellipse cx="60" cy="26" rx="10" ry="4" transform="rotate(-30 60 26)" />
-        <ellipse cx="70" cy="20" rx="9" ry="3.5" transform="rotate(10 70 20)" />
-        <ellipse cx="48" cy="30" rx="8" ry="3.2" transform="rotate(-60 48 30)" />
-        <ellipse cx="258" cy="46" rx="10" ry="4" transform="rotate(20 258 46)" />
-        <ellipse cx="268" cy="54" rx="9" ry="3.5" transform="rotate(-10 268 54)" />
-        <ellipse cx="112" cy="46" rx="7" ry="3" transform="rotate(15 112 46)" />
-      </g>
-
-      {/* melting clock draped over the branch */}
+      {/* the draped, melting blue pocket watch — softly slumped over the branch */}
       <path
         d="M150,46 C148,34 162,26 176,28 C190,30 198,40 194,50
            C205,52 210,62 202,70 C208,82 198,96 184,98
            C186,110 176,122 164,118 C168,106 158,100 152,106
            C154,116 144,124 136,116 C142,106 134,98 128,92
            C118,86 118,72 128,64 C122,54 132,44 144,46 Z"
-        fill="url(#wbOliveGold)" stroke="rgba(60,35,10,0.4)" strokeWidth="1"
+        fill="url(#wbClockBlue)" stroke="rgba(15,35,50,0.5)" strokeWidth="1"
       />
       {/* clock face rim + hands on the front-facing part of the drape */}
-      <circle cx="168" cy="52" r="17" fill="none" stroke="rgba(60,35,10,0.5)" strokeWidth="1.4" />
-      <line x1="168" y1="52" x2="168" y2="41" stroke="rgba(60,35,10,0.6)" strokeWidth="2" strokeLinecap="round" />
-      <line x1="168" y1="52" x2="177" y2="58" stroke="rgba(60,35,10,0.6)" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="168" cy="35" r="1.4" fill="rgba(60,35,10,0.5)" />
-      <circle cx="185" cy="52" r="1.4" fill="rgba(60,35,10,0.5)" />
-      <circle cx="168" cy="69" r="1.4" fill="rgba(60,35,10,0.5)" />
-      <circle cx="151" cy="52" r="1.4" fill="rgba(60,35,10,0.5)" />
+      <circle cx="168" cy="52" r="17" fill="none" stroke="rgba(15,35,50,0.55)" strokeWidth="1.4" />
+      <line x1="168" y1="52" x2="168" y2="41" stroke="rgba(15,35,50,0.65)" strokeWidth="2" strokeLinecap="round" />
+      <line x1="168" y1="52" x2="177" y2="58" stroke="rgba(15,35,50,0.65)" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="168" cy="35" r="1.4" fill="rgba(15,35,50,0.55)" />
+      <circle cx="185" cy="52" r="1.4" fill="rgba(15,35,50,0.55)" />
+      <circle cx="168" cy="69" r="1.4" fill="rgba(15,35,50,0.55)" />
+      <circle cx="151" cy="52" r="1.4" fill="rgba(15,35,50,0.55)" />
 
       {/* drip pooling below the sagging clock */}
-      <path d="M150,118 C150,124 154,128 158,124 C160,120 156,116 150,118 Z" fill="url(#wbOliveGold)" opacity="0.9" />
+      <path d="M150,118 C150,124 154,128 158,124 C160,120 156,116 150,118 Z" fill="url(#wbClockBlue)" opacity="0.9" />
     </svg>
   );
 }
@@ -1544,7 +1555,7 @@ function Ticker() {
   );
 }
 
-// Tiny unobtrusive session clock — "TIME SPENT · 00:17:42"
+// Tiny unobtrusive session clock — "time spent · 00:17:42"
 function useElapsedTime() {
   const startRef = useRef(Date.now());
   const [elapsed, setElapsed] = useState(0);
@@ -1588,7 +1599,7 @@ function HeaderMeta({ userId }) {
   return (
     <div className="wb-header-meta">
       {lastHere ? <p>last here {lastHere}</p> : null}
-      <p>TIME SPENT · {elapsed}</p>
+      <p>time spent · {elapsed}</p>
     </div>
   );
 }
@@ -1601,7 +1612,7 @@ function Footer({ theme }) {
           <OliveTreeMeltingClock />
         </div>
       ) : null}
-      <p className="wb-footer-line">DCC</p>
+      <p className="wb-footer-line">DC</p>
     </div>
   );
 }
@@ -1761,7 +1772,6 @@ function Wishboard({ userId, userEmail }) {
               {theme === "absurdist" ? <span className="wb-badge">CONSUMER PROFILE</span> : null}
             </h1>
             <p className="wb-subtitle">{subtitle}</p>
-            {theme === "absurdist" && tab === "wishlist" ? <p className="wb-microcopy">Recommended for continued wanting.</p> : null}
           </div>
           <div className="wb-header-actions">
             <div className="wb-header-actions-row">
