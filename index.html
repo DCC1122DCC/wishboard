@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8" />
+<link rel="icon" type="image/png" href="icons/logo.png">
+<link rel="apple-touch-icon" href="icons/logo.png">
+<meta property="og:image" content="icons/logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Wishboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -79,36 +81,68 @@
 
   /* ============== SURREALIST (cream / sky-blue / butter-yellow / coral) ============== */
   .wb-root[data-theme="surreal"] {
-    --paper: #FBF3E3; --ink: #32363D; --muted: #9AA6AE; --plum: #3E8E9E; --gold: #F5D76E;
-    --sage: #6EC6E8; --zen: #FF8A65; --line: rgba(62,142,158,.22); --card: #FFFDF6;
+    --paper: #F2DFAE; --ink: #2B1B0E; --muted: #8A6A3D; --plum: #0E7C93; --gold: #C97A2B;
+    --sage: #1E9EC2; --zen: #D9622E; --line: rgba(120,70,20,.3); --card: #FFF6E6;
     --radius-card: 26px; --radius-tab: 18px; --radius-sheet: 30px; --radius-btn: 20px;
     --radius-small: 14px; --radius-field: 16px; --radius-auth: 26px;
-    --shadow-card: 16px 20px 0 -4px rgba(255,154,90,.18), 30px 34px 46px -10px rgba(62,142,158,.22);
-    --shadow-fab: 0 12px 26px rgba(255,138,101,.4); --shadow-auth: 0 16px 34px rgba(62,142,158,.16);
+    --shadow-card: 16px 20px 0 -4px rgba(180,90,30,.28), 30px 34px 46px -10px rgba(14,90,110,.32);
+    --shadow-fab: 0 12px 26px rgba(201,122,43,.45); --shadow-auth: 0 16px 34px rgba(14,90,110,.22);
     --font-display: 'Fraunces', serif; --font-body: 'Space Grotesk', sans-serif;
-    --x-color: #C6CDD1;
+    --x-color: #B08655;
   }
+  /* Dynamic, multi-stop "Persistence of Memory" atmosphere: intense Catalan
+     azure/cyan sky, a hazy horizon band, then deep burnt-sienna/ochre sand. */
   .wb-root[data-theme="surreal"] {
-    background: linear-gradient(180deg, #CDEBF6 0%, #E4F3F8 26%, #F4EFDD 62%, #F6DFB8 100%);
+    background:
+      radial-gradient(ellipse 55% 32% at 78% 16%, rgba(255,233,180,.55) 0%, rgba(255,233,180,0) 62%),
+      linear-gradient(180deg,
+        #0A4A66 0%,
+        #0F6C87 13%,
+        #1D93AC 24%,
+        #55BAC9 33%,
+        #CFE4D6 43%,
+        #ECDBA0 51%,
+        #DFB569 63%,
+        #C4863E 76%,
+        #8C5323 90%,
+        #55301A 100%);
     background-attachment: fixed;
   }
-  .wb-root[data-theme="surreal"] .wb-card { border-radius: 18px 24px 14px 28px; }
+  .wb-root[data-theme="surreal"] .wb-card {
+    border-radius: 38% 62% 41% 59% / 24% 46% 54% 76%;
+    transition: transform .4s ease, box-shadow .4s ease, border-radius .4s ease;
+  }
+  .wb-root[data-theme="surreal"] .wb-card:nth-of-type(3n) { transform: rotate(1deg); }
+  .wb-root[data-theme="surreal"] .wb-card:nth-of-type(4n) { transform: rotate(-1.3deg); }
+  .wb-root[data-theme="surreal"] .wb-card:nth-of-type(5n) { transform: rotate(0.6deg); }
   .wb-root[data-theme="surreal"] .wb-card:hover {
-    transform: translateY(-6px) skewY(-0.5deg);
-    box-shadow: 22px 28px 0 -4px rgba(255,154,90,.24), 36px 42px 56px -10px rgba(62,142,158,.26);
+    transform: translateY(-7px) rotate(0deg) scale(1.015);
+    border-radius: 55% 45% 62% 38% / 40% 60% 35% 65%;
+    box-shadow: 22px 30px 0 -6px rgba(180,90,30,.32), 40px 50px 62px -10px rgba(14,90,110,.4);
   }
   .wb-root[data-theme="surreal"] .wb-title { font-size: 40px; letter-spacing: -0.01em; }
   .wb-root[data-theme="surreal"] .wb-sheet h2,
   .wb-root[data-theme="surreal"] .wb-detail-title { font-style: italic; }
+  .wb-root[data-theme="surreal"] .wb-tab { background: #E9CE96; }
   .wb-root[data-theme="surreal"] .wb-tab.active-wishlist { border-radius: 30px 8px 0 0; }
   .wb-root[data-theme="surreal"] .wb-tab.active-purchased { border-radius: 10px 26px 0 0; }
   .wb-root[data-theme="surreal"] .wb-tab.active-transcended { border-radius: 24px 14px 0 0; }
   .wb-root[data-theme="surreal"] .wb-tab.active-custom { border-radius: 16px 24px 0 0; }
   .wb-root[data-theme="surreal"] .wb-imgwrap img {
-    filter: sepia(.25) saturate(1.3) contrast(1.02);
+    filter: sepia(.35) saturate(1.55) contrast(1.1);
     transition: filter .35s ease;
   }
   .wb-root[data-theme="surreal"] .wb-imgwrap:hover img { filter: none; }
+  /* liquid, drippy price tag + delete button — dream-logic blobs instead of pills/circles */
+  .wb-root[data-theme="surreal"] .wb-price-tag {
+    border-radius: 42% 58% 54% 46% / 62% 44% 56% 38%;
+    transform: rotate(-3deg);
+    background: linear-gradient(140deg, #E7AE55 0%, var(--gold) 55%, #935318 100%);
+    box-shadow: 0 4px 10px rgba(90,50,10,.35);
+  }
+  .wb-root[data-theme="surreal"] .wb-delete.wb-delete-quiet {
+    border-radius: 38% 62% 55% 45% / 55% 40% 60% 45%;
+  }
 
   .wb-badge {
     display: inline-block; background: var(--gold); color: #111; font-family: var(--font-display);
@@ -377,12 +411,17 @@
   .wb-footer-line { font-family: var(--font-display); font-style: italic; font-size: 13px; color: var(--muted); margin: 0 0 4px; }
   .wb-footer-stamp { font-size: 10.5px; color: var(--muted); opacity: .7; margin: 0; }
 
-  /* ---- Dali melting clock (time-spent replacement, surreal theme only) ---- */
-  .wb-melting-clock { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
-  .wb-melting-clock svg { display: block; filter: drop-shadow(0 2px 3px rgba(50,30,10,.25)); }
-  .wb-melting-clock-time {
-    font-family: var(--font-display); font-style: italic; font-size: 11px; color: var(--muted);
-    letter-spacing: .02em; display: inline-block; transform: skewX(-6deg) scaleY(1.05);
+  /* ---- Dali olive tree + melting clock (footer-anchored, surreal theme only) ---- */
+  .wb-olive-clock-wrap { display: flex; justify-content: center; margin: 0 0 6px; }
+  .wb-olive-clock {
+    display: block; width: 100%; max-width: 340px; height: auto;
+    filter: drop-shadow(0 4px 6px rgba(60,35,10,.25));
+    animation: wb-olive-sway 7s ease-in-out infinite;
+    transform-origin: 50% 100%;
+  }
+  @keyframes wb-olive-sway {
+    0%, 100% { transform: rotate(-0.6deg); }
+    50% { transform: rotate(0.6deg); }
   }
 </style>
 </head>
@@ -531,47 +570,69 @@ const LotusIcon = (p) => (
 );
 const PaletteIcon = (p) => <Icon d="M12 2a10 10 0 100 20c1.4 0 2.1-.7 2.1-1.8 0-.5-.2-.9-.4-1.3-.2-.4-.4-.8-.4-1.2 0-.8.6-1.4 1.4-1.4h1.6a3.3 3.3 0 003.3-3.3C19.6 6.6 16.2 2 12 2z" {...p}><circle cx="7" cy="12" r="1.4" fill="currentColor" stroke="none" /><circle cx="9.5" cy="8" r="1.4" fill="currentColor" stroke="none" /><circle cx="14.5" cy="8" r="1.4" fill="currentColor" stroke="none" /></Icon>;
 
-// Dali-only: a Persistence-of-Memory-style melting pocket watch, used in place
-// of the plain "TIME SPENT" line when the Dali theme is active.
-function MeltingClockIcon({ size = 46 }) {
+// Dali-only: an olive branch with a melting pocket watch draped over it,
+// straight out of "The Persistence of Memory". Sits as an atmospheric detail
+// framing the bottom footer metadata when the Dali theme is active.
+function OliveTreeMeltingClock() {
   return (
-    <svg width={size} height={size * 0.85} viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <svg className="wb-olive-clock" viewBox="0 0 320 130" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <defs>
-        <linearGradient id="wbMeltGold" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#F0D48A" />
-          <stop offset="100%" stopColor="#B8863E" />
+        <linearGradient id="wbOliveGold" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#F0C878" />
+          <stop offset="100%" stopColor="#A9631F" />
+        </linearGradient>
+        <linearGradient id="wbOliveBark" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#6B4423" />
+          <stop offset="100%" stopColor="#3E2A14" />
         </linearGradient>
       </defs>
-      {/* drooping / melting watch body */}
-      <path
-        d="M22,38 C20,18 45,10 65,14 C90,19 102,32 96,48 C93,56 84,58 78,54
-           C80,70 72,86 62,84 C68,72 60,64 55,70 C60,82 48,94 40,84
-           C46,74 36,66 30,58 C18,54 16,46 22,38 Z"
-        fill="url(#wbMeltGold)"
-        stroke="var(--ink)"
-        strokeOpacity="0.35"
-        strokeWidth="1"
-      />
-      {/* clock face rim */}
-      <circle cx="58" cy="38" r="24" fill="none" stroke="var(--ink)" strokeOpacity="0.4" strokeWidth="1.5" />
-      {/* hands */}
-      <line x1="58" y1="38" x2="58" y2="23" stroke="var(--ink)" strokeOpacity="0.6" strokeWidth="2" strokeLinecap="round" />
-      <line x1="58" y1="38" x2="70" y2="44" stroke="var(--ink)" strokeOpacity="0.6" strokeWidth="2" strokeLinecap="round" />
-      {/* tick marks */}
-      <circle cx="58" cy="17" r="1.6" fill="var(--ink)" fillOpacity="0.4" />
-      <circle cx="79" cy="38" r="1.6" fill="var(--ink)" fillOpacity="0.4" />
-      <circle cx="58" cy="59" r="1.6" fill="var(--ink)" fillOpacity="0.4" />
-      <circle cx="37" cy="38" r="1.6" fill="var(--ink)" fillOpacity="0.4" />
-    </svg>
-  );
-}
 
-function MeltingClock({ time }) {
-  return (
-    <div className="wb-melting-clock" aria-label={`Time spent ${time}`}>
-      <MeltingClockIcon size={40} />
-      <span className="wb-melting-clock-time">{time}</span>
-    </div>
+      {/* ground shadow */}
+      <ellipse cx="160" cy="122" rx="140" ry="6" fill="rgba(60,35,15,0.18)" />
+
+      {/* gnarled trunk + reaching branch */}
+      <path
+        d="M46,128 C40,100 46,78 58,64 C50,54 52,40 62,30
+           C70,40 68,52 60,62 C74,50 92,46 110,50
+           C140,44 176,42 210,50 C232,55 248,58 262,52"
+        fill="none" stroke="url(#wbOliveBark)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"
+      />
+      <path
+        d="M58,64 C66,72 70,86 66,100 C64,110 58,120 50,128"
+        fill="none" stroke="url(#wbOliveBark)" strokeWidth="5" strokeLinecap="round"
+      />
+
+      {/* olive leaf clusters */}
+      <g fill="#7C8B52" opacity="0.9">
+        <ellipse cx="60" cy="26" rx="10" ry="4" transform="rotate(-30 60 26)" />
+        <ellipse cx="70" cy="20" rx="9" ry="3.5" transform="rotate(10 70 20)" />
+        <ellipse cx="48" cy="30" rx="8" ry="3.2" transform="rotate(-60 48 30)" />
+        <ellipse cx="258" cy="46" rx="10" ry="4" transform="rotate(20 258 46)" />
+        <ellipse cx="268" cy="54" rx="9" ry="3.5" transform="rotate(-10 268 54)" />
+        <ellipse cx="112" cy="46" rx="7" ry="3" transform="rotate(15 112 46)" />
+      </g>
+
+      {/* melting clock draped over the branch */}
+      <path
+        d="M150,46 C148,34 162,26 176,28 C190,30 198,40 194,50
+           C205,52 210,62 202,70 C208,82 198,96 184,98
+           C186,110 176,122 164,118 C168,106 158,100 152,106
+           C154,116 144,124 136,116 C142,106 134,98 128,92
+           C118,86 118,72 128,64 C122,54 132,44 144,46 Z"
+        fill="url(#wbOliveGold)" stroke="rgba(60,35,10,0.4)" strokeWidth="1"
+      />
+      {/* clock face rim + hands on the front-facing part of the drape */}
+      <circle cx="168" cy="52" r="17" fill="none" stroke="rgba(60,35,10,0.5)" strokeWidth="1.4" />
+      <line x1="168" y1="52" x2="168" y2="41" stroke="rgba(60,35,10,0.6)" strokeWidth="2" strokeLinecap="round" />
+      <line x1="168" y1="52" x2="177" y2="58" stroke="rgba(60,35,10,0.6)" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="168" cy="35" r="1.4" fill="rgba(60,35,10,0.5)" />
+      <circle cx="185" cy="52" r="1.4" fill="rgba(60,35,10,0.5)" />
+      <circle cx="168" cy="69" r="1.4" fill="rgba(60,35,10,0.5)" />
+      <circle cx="151" cy="52" r="1.4" fill="rgba(60,35,10,0.5)" />
+
+      {/* drip pooling below the sagging clock */}
+      <path d="M150,118 C150,124 154,128 158,124 C160,120 156,116 150,118 Z" fill="url(#wbOliveGold)" opacity="0.9" />
+    </svg>
   );
 }
 
@@ -1521,25 +1582,26 @@ function useLastHere(userId) {
   return lastHere;
 }
 
-function HeaderMeta({ userId, theme }) {
+function HeaderMeta({ userId }) {
   const lastHere = useLastHere(userId);
   const elapsed = useElapsedTime();
   return (
     <div className="wb-header-meta">
       {lastHere ? <p>last here {lastHere}</p> : null}
-      {theme === "surreal" ? (
-        <MeltingClock time={elapsed} />
-      ) : (
-        <p>TIME SPENT · {elapsed}</p>
-      )}
+      <p>TIME SPENT · {elapsed}</p>
     </div>
   );
 }
 
-function Footer() {
+function Footer({ theme }) {
   return (
     <div className="wb-footer">
-      <p className="wb-footer-line">love you mistah</p>
+      {theme === "surreal" ? (
+        <div className="wb-olive-clock-wrap">
+          <OliveTreeMeltingClock />
+        </div>
+      ) : null}
+      <p className="wb-footer-line">DCC</p>
     </div>
   );
 }
@@ -1708,7 +1770,7 @@ function Wishboard({ userId, userEmail }) {
                 Log out
               </button>
             </div>
-            <HeaderMeta userId={userId} theme={theme} />
+            <HeaderMeta userId={userId} />
           </div>
         </div>
       </div>
@@ -1808,7 +1870,7 @@ function Wishboard({ userId, userEmail }) {
         />
       ) : null}
 
-      <Footer />
+      <Footer theme={theme} />
     </div>
   );
 }
