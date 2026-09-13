@@ -36,6 +36,8 @@
     --font-display: 'Fraunces', serif;
     --font-body: 'Inter', sans-serif;
     --x-color: #B7B2A6;
+    --delete-bg: rgba(178,42,42,.88);
+    --delete-bg-hover: rgba(150,32,32,.95);
 
     font-family: var(--font-body);
     background: var(--paper);
@@ -102,14 +104,17 @@
   .wb-subtitle { font-size: 13px; color: var(--muted); margin: 5px 0 0; }
 
   .wb-header-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-  .wb-header-actions { display: flex; align-items: center; gap: 8px; }
+  .wb-header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; margin-top: 4px; }
+  .wb-header-actions-row { display: flex; align-items: center; gap: 8px; }
   .wb-logout {
     background: none; border: 1px solid var(--line); color: var(--muted); padding: 7px 12px;
     border-radius: var(--radius-small); font-size: 12px; cursor: pointer; font-family: var(--font-body);
-    white-space: nowrap; margin-top: 4px;
+    white-space: nowrap;
   }
+  .wb-header-meta { text-align: right; }
+  .wb-header-meta p { margin: 0; font-size: 10px; color: var(--muted); opacity: .8; line-height: 1.6; }
 
-  .wb-theme-switcher { position: relative; margin-top: 4px; }
+  .wb-theme-switcher { position: relative; }
   .wb-theme-btn {
     width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--card);
     display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted);
@@ -175,10 +180,14 @@
   }
   .wb-delete {
     position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%;
-    background: rgba(178,42,42,.88); color: #fff; border: none; display: flex; align-items: center; justify-content: center;
+    background: var(--delete-bg); color: #fff; border: none; display: flex; align-items: center; justify-content: center;
     cursor: pointer; z-index: 2; transition: background .15s;
   }
-  .wb-delete:hover { background: rgba(150,32,32,.95); }
+  .wb-delete:hover { background: var(--delete-bg-hover); }
+  .wb-delete.wb-delete-quiet {
+    background: rgba(255,255,255,.85); color: var(--x-color); box-shadow: 0 1px 4px rgba(0,0,0,.15);
+  }
+  .wb-delete.wb-delete-quiet:hover { background: #fff; color: var(--muted); }
 
   .wb-body { padding: 20px 12px 12px; }
   .wb-item-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; margin: 0 0 4px; }
@@ -294,6 +303,18 @@
   @keyframes wb-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
   @keyframes wb-toast-out { to { opacity: 0; transform: translateX(-50%) translateY(8px); } }
 
+  .wb-sparkle-layer {
+    position: fixed; inset: 0; pointer-events: none; z-index: 70;
+  }
+  .wb-sparkle {
+    position: absolute; color: var(--gold); animation: wb-sparkle-pop .9s ease-out forwards;
+  }
+  @keyframes wb-sparkle-pop {
+    0% { transform: translate(0,0) scale(0.2) rotate(0deg); opacity: 0; }
+    18% { opacity: 1; }
+    100% { transform: translate(var(--sx), var(--sy)) scale(1) rotate(var(--sr)); opacity: 0; }
+  }
+
   .wb-detail-overlay { align-items: center; }
   .wb-detail-sheet {
     position: relative; background: var(--card); width: 100%; max-width: 520px; max-height: 92vh;
@@ -307,7 +328,13 @@
   .wb-detail-img-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
   .wb-detail-img-wrap .wb-placeholder { aspect-ratio: auto; height: 260px; }
   .wb-detail-body { padding: 20px; }
+  .wb-detail-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
   .wb-detail-title { font-family: var(--font-display); font-size: 22px; font-weight: 600; margin: 0 0 6px; }
+  .wb-detail-edit-btn {
+    flex: none; background: none; border: 1px solid var(--line); color: var(--muted); border-radius: var(--radius-small);
+    padding: 6px 10px; font-size: 11.5px; font-weight: 600; cursor: pointer; font-family: var(--font-body);
+    display: flex; align-items: center; gap: 5px;
+  }
   .wb-detail-price { font-family: var(--font-display); font-size: 20px; color: var(--gold); font-weight: 600; margin: 0 0 10px; font-variant-numeric: tabular-nums; }
   .wb-detail-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
   .wb-detail-tabs button {
@@ -453,13 +480,26 @@ const UploadIcon = (p) => <Icon d="M12 3v12m0-12 4 4m-4-4-4 4M4 17v2a2 2 0 002 2
 const BagIcon = (p) => <Icon d="M6 7h12l1 14H5L6 7zM9 7a3 3 0 016 0" {...p} />;
 const UndoIcon = (p) => <Icon d="M9 14 4 9l5-5M4 9h10a5 5 0 015 5v1" {...p} />;
 const TrashIcon = (p) => <Icon d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v6M14 11v6" {...p} />;
+const EditIcon = (p) => <Icon d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" {...p} />;
 const SunIcon = (p) => (
   <Icon d="M12 17a5 5 0 100-10 5 5 0 000 10zM12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" {...p} />
+);
+// Minimal lotus glyph — a few overlapping petals rising from a base line.
+// Used specifically for the "Transcend" action/state, distinct from the app-logo sun fallback.
+const LotusIcon = (p) => (
+  <Icon {...p}>
+    <path d="M12 15c0-4 1.6-7 4-9-1 4.2-1 7-1 9" />
+    <path d="M12 15c0-4-1.6-7-4-9 1 4.2 1 7 1 9" />
+    <path d="M12 15c0-5 0-8.5 0-10.5" />
+    <path d="M12 15c-2.8-2-6-2.6-8.4-1.4 2.1 2.6 5 3.8 8.4 3.4" />
+    <path d="M12 15c2.8-2 6-2.6 8.4-1.4-2.1 2.6-5 3.8-8.4 3.4" />
+    <path d="M4.5 17.5c2.2 1.6 4.9 2.5 7.5 2.5s5.3-.9 7.5-2.5" />
+  </Icon>
 );
 const PaletteIcon = (p) => <Icon d="M12 2a10 10 0 100 20c1.4 0 2.1-.7 2.1-1.8 0-.5-.2-.9-.4-1.3-.2-.4-.4-.8-.4-1.2 0-.8.6-1.4 1.4-1.4h1.6a3.3 3.3 0 003.3-3.3C19.6 6.6 16.2 2 12 2z" {...p}><circle cx="7" cy="12" r="1.4" fill="currentColor" stroke="none" /><circle cx="9.5" cy="8" r="1.4" fill="currentColor" stroke="none" /><circle cx="14.5" cy="8" r="1.4" fill="currentColor" stroke="none" /></Icon>;
 
 // ---- Logo ----
-const LOGO_SRC = "logo.png";
+const LOGO_SRC = "icons/logo.png";
 function Logo({ size = 26 }) {
   const [failed, setFailed] = useState(false);
   if (failed) return <SunIcon size={size} />;
@@ -478,8 +518,8 @@ function Logo({ size = 26 }) {
 // ---- Theme registry (3 themes only) ----
 const THEMES = [
   { id: "original", name: "Original", swatch: "#B08D57" },
-  { id: "absurdist", name: "Hyper-Consumerist", swatch: "#FF2D78" },
-  { id: "surreal", name: "Surrealist", swatch: "#FF8A65" },
+  { id: "absurdist", name: "Consumerist", swatch: "#FF2D78" },
+  { id: "surreal", name: "Dali", swatch: "#FF8A65" },
 ];
 
 function ThemeSwitcher({ theme, onChange }) {
@@ -522,43 +562,71 @@ function ThemeSwitcher({ theme, onChange }) {
   );
 }
 
-// ---- micro-copy pools (2-7 words each) ----
-const WISHLIST_MESSAGES = [
-  "Desire persists.",
-  "The algorithm approves.",
-  "Still wanting it?",
-  "Noted. Filed under longing.",
-  "The want remains.",
-  "Still on your mind.",
-  "Wanting costs nothing. Yet.",
-];
+// ---- micro-copy pools (2-7 words each) — approved phrases only ----
+// Wishlist -> Purchased
 const PURCHASE_MESSAGES = [
-  "Capitalism wins.",
-  "You acquired the object.",
-  "The desire became possession.",
-  "Retail therapy strikes again.",
-  "Fueling the economy.",
-  "Treat yourself. Again.",
-  "The algorithm knew.",
+  "Desire acquired.",
+  "Consider it acquired.",
+  "You wanted it.",
 ];
+// Wishlist -> Transcended (signature transition)
 const TRANSCEND_MESSAGES = [
   "\"Desire...Transcended!\" \u2014 Darling",
   "Attachment dissolved.",
-  "Craving released.",
-  "You let it go.",
-  "Non-attachment achieved.",
-  "Stillness over acquisition.",
-  "The wanting passed.",
-  "Freedom from the object.",
 ];
+// Transcended -> Wishlist (playful relapse)
 const RELAPSE_MESSAGES = [
+  "Girl. We just left.",
   "Enlightenment postponed.",
-  "Back so soon?",
-  "Detachment: cancelled.",
-  "Nirvana can wait.",
-  "Relapse of desire.",
+  "And we're back.",
 ];
 const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+// ---- new-pin sparkle celebration: a few gold sparks, no text ----
+function SparkleBurst({ onDone }) {
+  const sparkles = useRef(
+    Array.from({ length: 10 }, () => {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 40 + Math.random() * 60;
+      return {
+        id: Math.random().toString(36).slice(2),
+        sx: Math.cos(angle) * dist,
+        sy: Math.sin(angle) * dist - 20,
+        sr: (Math.random() * 180 - 90).toFixed(0) + "deg",
+        size: 8 + Math.random() * 10,
+        delay: Math.random() * 0.12,
+      };
+    })
+  ).current;
+
+  useEffect(() => {
+    const t = setTimeout(onDone, 1000);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div className="wb-sparkle-layer">
+      {sparkles.map((s) => (
+        <span
+          key={s.id}
+          className="wb-sparkle"
+          style={{
+            left: "50%",
+            bottom: 90,
+            "--sx": `${s.sx}px`,
+            "--sy": `${s.sy}px`,
+            "--sr": s.sr,
+            animationDelay: `${s.delay}s`,
+          }}
+        >
+          <svg width={s.size} height={s.size} viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0l2.4 9.6L24 12l-9.6 2.4L12 24l-2.4-9.6L0 12l9.6-2.4z" />
+          </svg>
+        </span>
+      ))}
+    </div>
+  );
+}
 
 function useWishboardData(userId) {
   const [items, setItems] = useState([]);
@@ -676,11 +744,17 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
   };
 
   const badgeText = item.status === "wishlist" ? "WANT" : item.status === "purchased" ? "OWNED" : "RELEASED";
+  // Red trash is a Consumerist-only accent; Original and Dali get a quiet gray X.
+  const isQuietDelete = theme !== "absurdist";
 
   return (
     <div className="wb-card">
-      <button className="wb-delete" onClick={handleDelete} aria-label="Delete item">
-        <TrashIcon size={13} />
+      <button
+        className={`wb-delete ${isQuietDelete ? "wb-delete-quiet" : ""}`}
+        onClick={handleDelete}
+        aria-label="Delete item"
+      >
+        {isQuietDelete ? <XIcon size={14} /> : <TrashIcon size={13} />}
       </button>
       <div className="wb-imgwrap" onClick={() => onOpen(item)}>
         {theme === "absurdist" ? <span className="wb-badge wb-badge-corner">{badgeText}</span> : null}
@@ -707,7 +781,7 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
                 <BagIcon size={13} /> Purchased
               </button>
               <button className="wb-btn-move to-transcended" onClick={() => onMove(item.id, "transcended")}>
-                <SunIcon size={13} /> Transcend
+                <LotusIcon size={13} /> Transcend
               </button>
             </>
           ) : (
@@ -721,14 +795,47 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
   );
 }
 
-function PinDetailModal({ item, tabs, onClose, onMoveStatus, onMoveCustomTab, onDelete, onSaveNotes }) {
+function EditPinFields({ item, onChange }) {
+  // Inline edit form used inside the pin detail sheet — reuses the same
+  // field set as pin creation, but patches the existing record.
+  return (
+    <>
+      <div className="wb-field">
+        <label>What is it?</label>
+        <input type="text" value={item.title || ""} onChange={(e) => onChange({ title: e.target.value })} />
+      </div>
+      <div className="wb-field">
+        <label>Price</label>
+        <input
+          type="number" inputMode="decimal" step="0.01" min="0"
+          value={item.price ?? ""}
+          onChange={(e) => onChange({ price: e.target.value })}
+        />
+      </div>
+      <div className="wb-field">
+        <label>Link to the product</label>
+        <input type="text" value={item.link || ""} onChange={(e) => onChange({ link: e.target.value })} />
+      </div>
+      <div className="wb-field">
+        <label>Image URL</label>
+        <input type="text" value={item.image || ""} onChange={(e) => onChange({ image: e.target.value })} />
+      </div>
+    </>
+  );
+}
+
+function PinDetailModal({ item, tabs, onClose, onMoveStatus, onMoveCustomTab, onDelete, onSaveNotes, onSaveEdits }) {
   const [notes, setNotes] = useState(item.notes || "");
   const [savingNotes, setSavingNotes] = useState(false);
   const [dragY, setDragY] = useState(0);
   const dragStartRef = useRef(null);
+  const [editing, setEditing] = useState(false);
+  const [draftItem, setDraftItem] = useState(item);
+  const [savingEdits, setSavingEdits] = useState(false);
 
   useEffect(() => {
     setNotes(item.notes || "");
+    setDraftItem(item);
   }, [item.id]);
 
   const handleNotesBlur = async () => {
@@ -742,6 +849,23 @@ function PinDetailModal({ item, tabs, onClose, onMoveStatus, onMoveCustomTab, on
     if (window.confirm(`Delete "${item.title}"? This can't be undone.`)) {
       onDelete(item.id);
       onClose();
+    }
+  };
+
+  const startEditing = () => { setDraftItem(item); setEditing(true); };
+  const cancelEditing = () => { setDraftItem(item); setEditing(false); };
+  const saveEditing = async () => {
+    setSavingEdits(true);
+    try {
+      await onSaveEdits(item.id, {
+        title: (draftItem.title || "").trim(),
+        price: parseFloat(draftItem.price) || 0,
+        link: (draftItem.link || "").trim(),
+        image: (draftItem.image || "").trim(),
+      });
+      setEditing(false);
+    } finally {
+      setSavingEdits(false);
     }
   };
 
@@ -785,62 +909,81 @@ function PinDetailModal({ item, tabs, onClose, onMoveStatus, onMoveCustomTab, on
           )}
         </div>
         <div className="wb-detail-body">
-          <h2 className="wb-detail-title">{item.title}</h2>
-          <p className="wb-detail-price">{currency(item.price)}</p>
-          {item.link ? (
-            <a className="wb-item-source" href={item.link} target="_blank" rel="noreferrer" style={{ marginBottom: 16 }}>
-              {hostnameOf(item.link) || "view item"}
-            </a>
-          ) : null}
-
-          <div className="wb-field">
-            <label>Notes</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              onBlur={handleNotesBlur}
-              placeholder="Add a note about this pin…"
-              rows={3}
-            />
-            {savingNotes ? <p className="wb-link-hint">Saving…</p> : null}
-          </div>
-
-          <div className="wb-field">
-            <label>Move to</label>
-            <div className="wb-detail-tabs">
-              <button
-                className={item.status === "wishlist" && !item.custom_tab_id ? "active" : ""}
-                onClick={() => onMoveStatus(item.id, "wishlist")}
-              >
-                Wishlist
-              </button>
-              <button
-                className={item.status === "purchased" && !item.custom_tab_id ? "active" : ""}
-                onClick={() => onMoveStatus(item.id, "purchased")}
-              >
-                Purchased
-              </button>
-              <button
-                className={item.status === "transcended" && !item.custom_tab_id ? "active" : ""}
-                onClick={() => onMoveStatus(item.id, "transcended")}
-              >
-                Transcended
-              </button>
-              {tabs.map((t) => (
-                <button
-                  key={t.id}
-                  className={item.custom_tab_id === t.id ? "active" : ""}
-                  onClick={() => onMoveCustomTab(item.id, t.id)}
-                >
-                  {t.name}
+          {editing ? (
+            <>
+              <EditPinFields item={draftItem} onChange={(patch) => setDraftItem((d) => ({ ...d, ...patch }))} />
+              <div className="wb-sheet-actions">
+                <button className="wb-cancel-btn" onClick={cancelEditing} type="button">Cancel</button>
+                <button className="wb-save-btn" onClick={saveEditing} disabled={savingEdits || !(draftItem.title || "").trim()}>
+                  {savingEdits ? "Saving…" : "Save changes"}
                 </button>
-              ))}
-            </div>
-          </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="wb-detail-title-row">
+                <h2 className="wb-detail-title">{item.title}</h2>
+                <button className="wb-detail-edit-btn" onClick={startEditing} type="button">
+                  <EditIcon size={13} /> Edit
+                </button>
+              </div>
+              <p className="wb-detail-price">{currency(item.price)}</p>
+              {item.link ? (
+                <a className="wb-item-source" href={item.link} target="_blank" rel="noreferrer" style={{ marginBottom: 16 }}>
+                  {hostnameOf(item.link) || "view item"}
+                </a>
+              ) : null}
 
-          <button className="wb-detail-delete" onClick={handleDelete}>
-            <TrashIcon size={14} /> Delete pin
-          </button>
+              <div className="wb-field">
+                <label>Notes</label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  onBlur={handleNotesBlur}
+                  placeholder="Add a note about this pin…"
+                  rows={3}
+                />
+                {savingNotes ? <p className="wb-link-hint">Saving…</p> : null}
+              </div>
+
+              <div className="wb-field">
+                <label>Move to</label>
+                <div className="wb-detail-tabs">
+                  <button
+                    className={item.status === "wishlist" && !item.custom_tab_id ? "active" : ""}
+                    onClick={() => onMoveStatus(item.id, "wishlist")}
+                  >
+                    Wishlist
+                  </button>
+                  <button
+                    className={item.status === "purchased" && !item.custom_tab_id ? "active" : ""}
+                    onClick={() => onMoveStatus(item.id, "purchased")}
+                  >
+                    Purchased
+                  </button>
+                  <button
+                    className={item.status === "transcended" && !item.custom_tab_id ? "active" : ""}
+                    onClick={() => onMoveStatus(item.id, "transcended")}
+                  >
+                    Transcended
+                  </button>
+                  {tabs.map((t) => (
+                    <button
+                      key={t.id}
+                      className={item.custom_tab_id === t.id ? "active" : ""}
+                      onClick={() => onMoveCustomTab(item.id, t.id)}
+                    >
+                      {t.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button className="wb-detail-delete" onClick={handleDelete}>
+                <TrashIcon size={14} /> Delete pin
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -958,6 +1101,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
       cropperRef.current = new window.Cropper(cropperImgRef.current, {
         aspectRatio: NaN, // freeform — no forced aspect ratio
         viewMode: 1, // crop box is clamped inside the photo's own bounds
+        dragMode: "move", // phone-style: drag moves the existing box, resize via its own edge/corner handles
         autoCropArea: 0.9,
         background: false,
         responsive: true,
@@ -1154,7 +1298,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
               <div className="wb-cropper-wrap">
                 <img ref={cropperImgRef} src={rawImage} onLoad={handleCropperImgLoad} alt="Crop preview" />
               </div>
-              <p className="wb-crop-hint">Freeform crop — drag the handles however you like; the box stays within the photo.</p>
+              <p className="wb-crop-hint">Drag the crop box's own edges/corners to resize — the box stays within the photo.</p>
               <div className="wb-cropper-actions">
                 <button type="button" className="wb-cropper-cancel" onClick={cancelCrop}>Cancel</button>
                 <button type="button" className="wb-save-btn" onClick={applyCrop}>Use this crop</button>
@@ -1256,9 +1400,24 @@ function Ticker() {
   );
 }
 
-function Footer({ tab, userId }) {
-  const [lastHere, setLastHere] = useState("");
+// Tiny unobtrusive session clock — "TIME SPENT · 00:17:42"
+function useElapsedTime() {
+  const startRef = useRef(Date.now());
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setElapsed(Date.now() - startRef.current), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const totalSec = Math.floor(elapsed / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
 
+function useLastHere(userId) {
+  const [lastHere, setLastHere] = useState("");
   useEffect(() => {
     const key = `wb-last-visit:${userId}`;
     try {
@@ -1276,11 +1435,24 @@ function Footer({ tab, userId }) {
       // ignore
     }
   }, [userId]);
+  return lastHere;
+}
 
+function HeaderMeta({ userId }) {
+  const lastHere = useLastHere(userId);
+  const elapsed = useElapsedTime();
+  return (
+    <div className="wb-header-meta">
+      {lastHere ? <p>last here {lastHere}</p> : null}
+      <p>TIME SPENT · {elapsed}</p>
+    </div>
+  );
+}
+
+function Footer() {
   return (
     <div className="wb-footer">
-      {tab === "wishlist" ? <p className="wb-footer-line">take me take mine</p> : null}
-      {lastHere ? <p className="wb-footer-stamp">last here {lastHere}</p> : null}
+      <p className="wb-footer-line">love you mistah</p>
     </div>
   );
 }
@@ -1293,6 +1465,8 @@ function Wishboard({ userId, userEmail }) {
   const [openItemId, setOpenItemId] = useState(null);
   const [toastMsg, setToastMsg] = useState("");
   const [toastKey, setToastKey] = useState(0);
+  const [sparkleKey, setSparkleKey] = useState(0);
+  const [showSparkle, setShowSparkle] = useState(false);
   const [theme, setThemeState] = useState(() => {
     try {
       const saved = localStorage.getItem("wb-theme");
@@ -1320,22 +1494,31 @@ function Wishboard({ userId, userEmail }) {
     setTab(newTab);
   };
 
+  // Toasts fire ONLY for these exact status transitions; every other move is silent.
   const handleMoveStatus = async (id, status) => {
     const item = items.find((i) => i.id === id);
     const fromStatus = item ? item.status : null;
+    const wasCustomTab = item ? Boolean(item.custom_tab_id) : false;
     await moveItem(id, status);
-    if (status === "purchased") {
+
+    // Moving out of a custom tab into a built-in status isn't one of the
+    // approved wishlist/purchased/transcended transitions — stay silent.
+    if (wasCustomTab) return;
+
+    if (fromStatus === "wishlist" && status === "purchased") {
       showToast(pickRandom(PURCHASE_MESSAGES));
-    } else if (status === "transcended") {
+    } else if (fromStatus === "wishlist" && status === "transcended") {
       const amt = item ? Number(item.price) || 0 : 0;
       showToast(`${pickRandom(TRANSCEND_MESSAGES)}\n+${currency(amt)} saved through detachment`);
-    } else if (status === "wishlist") {
-      showToast(fromStatus === "transcended" ? pickRandom(RELAPSE_MESSAGES) : pickRandom(WISHLIST_MESSAGES));
+    } else if (fromStatus === "transcended" && status === "wishlist") {
+      showToast(pickRandom(RELAPSE_MESSAGES));
     }
+    // purchased->wishlist, purchased->transcended, transcended->purchased: no popup, by design.
   };
 
   const handleMoveCustomTab = (id, tabId) => updateItem(id, { custom_tab_id: tabId });
   const handleSaveNotes = (id, notes) => updateItem(id, { notes });
+  const handleSaveEdits = (id, patch) => updateItem(id, patch);
 
   const handleAddTab = async () => {
     const name = window.prompt("Name your new tab:");
@@ -1351,6 +1534,15 @@ function Wishboard({ userId, userEmail }) {
     if (!window.confirm("Delete this tab? Items in it will move back to their original list.")) return;
     deleteTab(id);
     if (tab === id) setTab("wishlist");
+  };
+
+  const handleAdd = async (item) => {
+    await addItem(item);
+    // Sparkle celebration only for brand-new pins landing on Wishlist — no text, ever.
+    if (item.status === "wishlist" && !item.custom_tab_id) {
+      setSparkleKey((k) => k + 1);
+      setShowSparkle(true);
+    }
   };
 
   const wishlist = items.filter((i) => i.status === "wishlist" && !i.custom_tab_id);
@@ -1372,13 +1564,13 @@ function Wishboard({ userId, userEmail }) {
   const subtitle = isBuiltIn
     ? (tab === "wishlist" ? "Pin what you want. Watch what it costs."
        : tab === "purchased" ? "The desire has become possession."
-       : "\"Desire...Transcended!\" \u2014 Darling")
+       : "\"All conditioned things are impermanent.\" \u2014 Dhammapada")
     : (activeCustomTab ? `Your "${activeCustomTab.name}" collection.` : "");
 
   const emptyText = isBuiltIn
     ? (tab === "wishlist" ? "Nothing pinned yet. Tap the + to add the first thing you're eyeing."
-       : tab === "purchased" ? "Nothing acquired yet. The consumer journey awaits."
-       : "Nothing transcended yet. Desire still has its claws in you.")
+       : tab === "purchased" ? "Nothing spent yet."
+       : "Nothing released yet.")
     : "Nothing here yet.";
 
   const summaryLabel = isBuiltIn
@@ -1405,10 +1597,13 @@ function Wishboard({ userId, userEmail }) {
             {theme === "absurdist" ? <p className="wb-microcopy">Recommended for continued wanting.</p> : null}
           </div>
           <div className="wb-header-actions">
-            <ThemeSwitcher theme={theme} onChange={setTheme} />
-            <button className="wb-logout" onClick={() => supabaseClient.auth.signOut()}>
-              Log out
-            </button>
+            <div className="wb-header-actions-row">
+              <ThemeSwitcher theme={theme} onChange={setTheme} />
+              <button className="wb-logout" onClick={() => supabaseClient.auth.signOut()}>
+                Log out
+              </button>
+            </div>
+            <HeaderMeta userId={userId} />
           </div>
         </div>
       </div>
@@ -1473,8 +1668,9 @@ function Wishboard({ userId, userEmail }) {
         <PlusIcon size={26} />
       </button>
 
-      <AddItemSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onAdd={addItem} draftKey={`wb-draft:${userId}`} tabs={customTabs} />
+      <AddItemSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onAdd={handleAdd} draftKey={`wb-draft:${userId}`} tabs={customTabs} />
       <Toast key={toastKey} message={toastMsg} onDone={() => setToastMsg("")} />
+      {showSparkle ? <SparkleBurst key={sparkleKey} onDone={() => setShowSparkle(false)} /> : null}
 
       {openItem ? (
         <PinDetailModal
@@ -1485,10 +1681,11 @@ function Wishboard({ userId, userEmail }) {
           onMoveCustomTab={handleMoveCustomTab}
           onDelete={deleteItem}
           onSaveNotes={handleSaveNotes}
+          onSaveEdits={handleSaveEdits}
         />
       ) : null}
 
-      <Footer tab={tab} userId={userId} />
+      <Footer />
     </div>
   );
 }
