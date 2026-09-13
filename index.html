@@ -167,6 +167,10 @@
     background: none; border: none; color: inherit; cursor: pointer; display: flex; opacity: .7;
   }
   .wb-tab-delete:hover { opacity: 1; }
+  .wb-tab-dragover {
+    box-shadow: 0 0 0 2px var(--plum) inset, 0 -3px 0 var(--plum) inset !important;
+    background: var(--card) !important;
+  }
   .wb-tab-add {
     padding: 10px 12px 12px; border-radius: var(--radius-tab) var(--radius-tab) 0 0; border: 1px dashed var(--line); border-bottom: none;
     background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center;
@@ -187,6 +191,8 @@
   @media (min-width: 960px) { .wb-grid { column-count: 4; } }
 
   .wb-card { break-inside: avoid; margin-bottom: 14px; background: var(--card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); overflow: hidden; border: 1px solid var(--line); position: relative; transition: transform .25s ease, box-shadow .25s ease; }
+  .wb-card[draggable="true"] { cursor: grab; }
+  .wb-card:active { cursor: grabbing; }
   .wb-imgwrap { position: relative; background: #ECE4D2; cursor: pointer; }
   .wb-imgwrap img { width: 100%; display: block; object-fit: cover; }
   .wb-placeholder { width: 100%; aspect-ratio: 4 / 5; background: linear-gradient(160deg, var(--plum), #7d5468); display: flex; align-items: center; justify-content: center; }
@@ -370,6 +376,14 @@
   .wb-footer { margin: 40px 20px 0; padding: 14px 4px 4px; border-top: 1px solid var(--line); text-align: center; }
   .wb-footer-line { font-family: var(--font-display); font-style: italic; font-size: 13px; color: var(--muted); margin: 0 0 4px; }
   .wb-footer-stamp { font-size: 10.5px; color: var(--muted); opacity: .7; margin: 0; }
+
+  /* ---- Dali melting clock (time-spent replacement, surreal theme only) ---- */
+  .wb-melting-clock { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+  .wb-melting-clock svg { display: block; filter: drop-shadow(0 2px 3px rgba(50,30,10,.25)); }
+  .wb-melting-clock-time {
+    font-family: var(--font-display); font-style: italic; font-size: 11px; color: var(--muted);
+    letter-spacing: .02em; display: inline-block; transform: skewX(-6deg) scaleY(1.05);
+  }
 </style>
 </head>
 <body>
@@ -516,6 +530,50 @@ const LotusIcon = (p) => (
   </Icon>
 );
 const PaletteIcon = (p) => <Icon d="M12 2a10 10 0 100 20c1.4 0 2.1-.7 2.1-1.8 0-.5-.2-.9-.4-1.3-.2-.4-.4-.8-.4-1.2 0-.8.6-1.4 1.4-1.4h1.6a3.3 3.3 0 003.3-3.3C19.6 6.6 16.2 2 12 2z" {...p}><circle cx="7" cy="12" r="1.4" fill="currentColor" stroke="none" /><circle cx="9.5" cy="8" r="1.4" fill="currentColor" stroke="none" /><circle cx="14.5" cy="8" r="1.4" fill="currentColor" stroke="none" /></Icon>;
+
+// Dali-only: a Persistence-of-Memory-style melting pocket watch, used in place
+// of the plain "TIME SPENT" line when the Dali theme is active.
+function MeltingClockIcon({ size = 46 }) {
+  return (
+    <svg width={size} height={size * 0.85} viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="wbMeltGold" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#F0D48A" />
+          <stop offset="100%" stopColor="#B8863E" />
+        </linearGradient>
+      </defs>
+      {/* drooping / melting watch body */}
+      <path
+        d="M22,38 C20,18 45,10 65,14 C90,19 102,32 96,48 C93,56 84,58 78,54
+           C80,70 72,86 62,84 C68,72 60,64 55,70 C60,82 48,94 40,84
+           C46,74 36,66 30,58 C18,54 16,46 22,38 Z"
+        fill="url(#wbMeltGold)"
+        stroke="var(--ink)"
+        strokeOpacity="0.35"
+        strokeWidth="1"
+      />
+      {/* clock face rim */}
+      <circle cx="58" cy="38" r="24" fill="none" stroke="var(--ink)" strokeOpacity="0.4" strokeWidth="1.5" />
+      {/* hands */}
+      <line x1="58" y1="38" x2="58" y2="23" stroke="var(--ink)" strokeOpacity="0.6" strokeWidth="2" strokeLinecap="round" />
+      <line x1="58" y1="38" x2="70" y2="44" stroke="var(--ink)" strokeOpacity="0.6" strokeWidth="2" strokeLinecap="round" />
+      {/* tick marks */}
+      <circle cx="58" cy="17" r="1.6" fill="var(--ink)" fillOpacity="0.4" />
+      <circle cx="79" cy="38" r="1.6" fill="var(--ink)" fillOpacity="0.4" />
+      <circle cx="58" cy="59" r="1.6" fill="var(--ink)" fillOpacity="0.4" />
+      <circle cx="37" cy="38" r="1.6" fill="var(--ink)" fillOpacity="0.4" />
+    </svg>
+  );
+}
+
+function MeltingClock({ time }) {
+  return (
+    <div className="wb-melting-clock" aria-label={`Time spent ${time}`}>
+      <MeltingClockIcon size={40} />
+      <span className="wb-melting-clock-time">{time}</span>
+    </div>
+  );
+}
 
 // ---- Logo ----
 const LOGO_SRC = "icons/logo.png";
@@ -762,12 +820,18 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
     }
   };
 
+  // Drag source for tab-header drop targets (see wb-tabs in Wishboard).
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData("text/plain", item.id);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
   const badgeText = item.status === "wishlist" ? "WANT" : item.status === "purchased" ? "OWNED" : "RELEASED";
   // Red trash is a Consumerist-only accent; Original and Dali get a quiet gray X.
   const isQuietDelete = theme !== "absurdist";
 
   return (
-    <div className="wb-card">
+    <div className="wb-card" draggable="true" onDragStart={handleDragStart}>
       <button
         className={`wb-delete ${isQuietDelete ? "wb-delete-quiet" : ""}`}
         onClick={handleDelete}
@@ -1457,13 +1521,17 @@ function useLastHere(userId) {
   return lastHere;
 }
 
-function HeaderMeta({ userId }) {
+function HeaderMeta({ userId, theme }) {
   const lastHere = useLastHere(userId);
   const elapsed = useElapsedTime();
   return (
     <div className="wb-header-meta">
       {lastHere ? <p>last here {lastHere}</p> : null}
-      <p>TIME SPENT · {elapsed}</p>
+      {theme === "surreal" ? (
+        <MeltingClock time={elapsed} />
+      ) : (
+        <p>TIME SPENT · {elapsed}</p>
+      )}
     </div>
   );
 }
@@ -1486,6 +1554,7 @@ function Wishboard({ userId, userEmail }) {
   const [toastKey, setToastKey] = useState(0);
   const [sparkleKey, setSparkleKey] = useState(0);
   const [showSparkle, setShowSparkle] = useState(false);
+  const [dragOverTab, setDragOverTab] = useState(null);
   const [theme, setThemeState] = useState(() => {
     try {
       const saved = localStorage.getItem("wb-theme");
@@ -1533,6 +1602,23 @@ function Wishboard({ userId, userEmail }) {
       showToast(pickRandom(RELAPSE_MESSAGES));
     }
     // purchased->wishlist, purchased->transcended, transcended->purchased: no popup, by design.
+  };
+
+  // Drag-and-drop onto a tab header: same status transition + toast logic as
+  // the existing move buttons, just triggered by a drop instead of a click.
+  const handleTabDragOver = (e, tabId) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverTab !== tabId) setDragOverTab(tabId);
+  };
+  const handleTabDragLeave = (tabId) => {
+    setDragOverTab((current) => (current === tabId ? null : current));
+  };
+  const handleTabDrop = (e, status) => {
+    e.preventDefault();
+    setDragOverTab(null);
+    const id = e.dataTransfer.getData("text/plain");
+    if (id) handleMoveStatus(id, status);
   };
 
   const handleMoveCustomTab = (id, tabId) => updateItem(id, { custom_tab_id: tabId });
@@ -1613,7 +1699,7 @@ function Wishboard({ userId, userEmail }) {
               {theme === "absurdist" ? <span className="wb-badge">CONSUMER PROFILE</span> : null}
             </h1>
             <p className="wb-subtitle">{subtitle}</p>
-            {theme === "absurdist" ? <p className="wb-microcopy">Recommended for continued wanting.</p> : null}
+            {theme === "absurdist" && tab === "wishlist" ? <p className="wb-microcopy">Recommended for continued wanting.</p> : null}
           </div>
           <div className="wb-header-actions">
             <div className="wb-header-actions-row">
@@ -1622,19 +1708,37 @@ function Wishboard({ userId, userEmail }) {
                 Log out
               </button>
             </div>
-            <HeaderMeta userId={userId} />
+            <HeaderMeta userId={userId} theme={theme} />
           </div>
         </div>
       </div>
 
       <div className="wb-tabs">
-        <div className={`wb-tab ${tab === "wishlist" ? "active-wishlist" : ""}`} onClick={() => handleTabChange("wishlist")}>
+        <div
+          className={`wb-tab ${tab === "wishlist" ? "active-wishlist" : ""} ${dragOverTab === "wishlist" ? "wb-tab-dragover" : ""}`}
+          onClick={() => handleTabChange("wishlist")}
+          onDragOver={(e) => handleTabDragOver(e, "wishlist")}
+          onDragLeave={() => handleTabDragLeave("wishlist")}
+          onDrop={(e) => handleTabDrop(e, "wishlist")}
+        >
           Wishlist <span className="wb-count">{wishlist.length}</span>
         </div>
-        <div className={`wb-tab ${tab === "purchased" ? "active-purchased" : ""}`} onClick={() => handleTabChange("purchased")}>
+        <div
+          className={`wb-tab ${tab === "purchased" ? "active-purchased" : ""} ${dragOverTab === "purchased" ? "wb-tab-dragover" : ""}`}
+          onClick={() => handleTabChange("purchased")}
+          onDragOver={(e) => handleTabDragOver(e, "purchased")}
+          onDragLeave={() => handleTabDragLeave("purchased")}
+          onDrop={(e) => handleTabDrop(e, "purchased")}
+        >
           Purchased <span className="wb-count">{purchased.length}</span>
         </div>
-        <div className={`wb-tab ${tab === "transcended" ? "active-transcended" : ""}`} onClick={() => handleTabChange("transcended")}>
+        <div
+          className={`wb-tab ${tab === "transcended" ? "active-transcended" : ""} ${dragOverTab === "transcended" ? "wb-tab-dragover" : ""}`}
+          onClick={() => handleTabChange("transcended")}
+          onDragOver={(e) => handleTabDragOver(e, "transcended")}
+          onDragLeave={() => handleTabDragLeave("transcended")}
+          onDrop={(e) => handleTabDrop(e, "transcended")}
+        >
           Transcended <span className="wb-count">{transcended.length}</span>
         </div>
         {customTabs.map((ct) => {
