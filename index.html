@@ -47,7 +47,7 @@
     min-height: 100vh;
     padding-bottom: 100px;
     box-sizing: border-box;
-    cursor: url('icons/wand-cursor.svg') 26 6, auto;
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><defs><linearGradient id='wandShaft' x1='0' y1='1' x2='1' y2='0'><stop offset='0%25' stop-color='%2308080A'/><stop offset='55%25' stop-color='%231C1C22'/><stop offset='100%25' stop-color='%230A0A0C'/></linearGradient><linearGradient id='wandTipCap' x1='0' y1='1' x2='1' y2='0'><stop offset='0%25' stop-color='%23E8E4DC'/><stop offset='100%25' stop-color='%23FFFFFF'/></linearGradient><radialGradient id='wandGlow' cx='50%25' cy='50%25' r='50%25'><stop offset='0%25' stop-color='%23FFF7DE' stop-opacity='0.95'/><stop offset='35%25' stop-color='%23FCE7A6' stop-opacity='0.55'/><stop offset='100%25' stop-color='%23FCE7A6' stop-opacity='0'/></radialGradient><radialGradient id='sparkGrad' cx='50%25' cy='50%25' r='50%25'><stop offset='0%25' stop-color='%23FFF3C4'/><stop offset='55%25' stop-color='%23F7C948'/><stop offset='100%25' stop-color='%23C98A2B'/></radialGradient></defs><circle cx='25.5' cy='6.5' r='7.5' fill='url(%23wandGlow)'/><line x1='9' y1='26.5' x2='22.5' y2='9.5' stroke='url(%23wandShaft)' stroke-width='3.2' stroke-linecap='round'/><line x1='9.6' y1='25.6' x2='21.7' y2='10.6' stroke='%233A3A42' stroke-width='0.7' stroke-linecap='round' opacity='0.55'/><line x1='6.3' y1='29.2' x2='10.4' y2='24.6' stroke='url(%23wandTipCap)' stroke-width='4.4' stroke-linecap='round'/><line x1='21' y1='11.2' x2='25.4' y2='6.2' stroke='url(%23wandTipCap)' stroke-width='4.4' stroke-linecap='round'/><circle cx='25.7' cy='5.9' r='1.6' fill='%23FFFDF6'/><path d='M29.5 2 Q30 3 31 3.5 Q30 4 29.5 5 Q29 4 28 3.5 Q29 3 29.5 2 Z' fill='url(%23sparkGrad)'/><path d='M23.2 2.6 Q23.55 3.3 24.3 3.6 Q23.55 3.9 23.2 4.6 Q22.85 3.9 22.1 3.6 Q22.85 3.3 23.2 2.6 Z' fill='url(%23sparkGrad)'/><path d='M29.8 10.4 Q30.1 11 30.7 11.2 Q30.1 11.4 29.8 12 Q29.5 11.4 28.9 11.2 Q29.5 11 29.8 10.4 Z' fill='url(%23sparkGrad)'/><path d='M26.4 13.6 Q26.65 14.1 27.2 14.3 Q26.65 14.5 26.4 15 Q26.15 14.5 25.6 14.3 Q26.15 14.1 26.4 13.6 Z' fill='url(%23sparkGrad)'/></svg>") 26 6, auto;
   }
   .wb-root *, .wb-root *::before, .wb-root *::after { box-sizing: border-box; }
 
@@ -420,21 +420,6 @@
   }
 
   .wb-footer { margin: 40px 20px 0; padding: 14px 4px 4px; border-top: 1px solid var(--line); text-align: center; }
-  .wb-footer-line { font-family: var(--font-display); font-style: italic; font-size: 13px; color: var(--muted); margin: 0 0 4px; }
-  .wb-footer-stamp { font-size: 10.5px; color: var(--muted); opacity: .7; margin: 0; }
-
-  /* ---- Dali melting dollar sign (footer-anchored, surreal theme only) ---- */
-  .wb-melting-dollar-wrap { display: flex; justify-content: center; margin: 0 0 6px; }
-  .wb-melting-dollar {
-    display: block; width: 100%; max-width: 190px; height: auto;
-    filter: drop-shadow(0 5px 7px rgba(60,35,10,.28));
-    animation: wb-dollar-sway 7s ease-in-out infinite;
-    transform-origin: 50% 100%;
-  }
-  @keyframes wb-dollar-sway {
-    0%, 100% { transform: rotate(-0.8deg); }
-    50% { transform: rotate(0.8deg); }
-  }
 </style>
 </head>
 <body>
@@ -581,48 +566,6 @@ const LotusIcon = (p) => (
   </Icon>
 );
 const PaletteIcon = (p) => <Icon d="M12 2a10 10 0 100 20c1.4 0 2.1-.7 2.1-1.8 0-.5-.2-.9-.4-1.3-.2-.4-.4-.8-.4-1.2 0-.8.6-1.4 1.4-1.4h1.6a3.3 3.3 0 003.3-3.3C19.6 6.6 16.2 2 12 2z" {...p}><circle cx="7" cy="12" r="1.4" fill="currentColor" stroke="none" /><circle cx="9.5" cy="8" r="1.4" fill="currentColor" stroke="none" /><circle cx="14.5" cy="8" r="1.4" fill="currentColor" stroke="none" /></Icon>;
-
-// Dali-only: an absurdist, liquid-warped dollar sign, dripping and slumping
-// under its own weight — dream-logic wealth instead of a literal timepiece.
-// Sits as an atmospheric detail above the footer text when the Dali theme is active.
-function MeltingDollarSign() {
-  return (
-    <svg className="wb-melting-dollar" viewBox="0 0 120 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <linearGradient id="wbDollarGold" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#FCEBB0" />
-          <stop offset="45%" stopColor="#E3B156" />
-          <stop offset="100%" stopColor="#9C6B1F" />
-        </linearGradient>
-      </defs>
-
-      {/* puddle shadow the melt is pooling into */}
-      <ellipse cx="58" cy="160" rx="38" ry="6.5" fill="rgba(60,35,15,0.18)" />
-
-      {/* the "S" curve of the sign, warped into an uneven, sagging ribbon */}
-      <path
-        d="M84,20 C62,8 34,16 36,32 C38,48 64,48 72,60
-           C80,72 90,88 76,100 C60,114 30,108 26,92"
-        fill="none" stroke="url(#wbDollarGold)" strokeWidth="11" strokeLinecap="round"
-      />
-
-      {/* the vertical stroke through it, drooping and thinning as it melts down */}
-      <path
-        d="M63,4 C59,20 68,34 59,48 C50,62 66,78 57,94
-           C48,110 62,126 56,142 C53,150 57,157 55,164"
-        fill="none" stroke="url(#wbDollarGold)" strokeWidth="9" strokeLinecap="round"
-      />
-
-      {/* melted droplets breaking off the extremities */}
-      <path d="M55,164 C52,170 57,175 62,172 C65.5,170 63,165 58,163 C56.8,162.3 55.6,163 55,164 Z" fill="url(#wbDollarGold)" opacity="0.92" />
-      <path d="M25,92 C21,97 24,103 29,101 C32,99.7 31,94.5 27,91.5 C26.2,90.9 25.5,91.2 25,92 Z" fill="url(#wbDollarGold)" opacity="0.85" />
-      <path d="M84,20 C87,15 93,16 93,21 C93,24.5 88,25.5 84,23 C83,22.3 83.3,20.8 84,20 Z" fill="url(#wbDollarGold)" opacity="0.8" />
-
-      {/* soft glossy highlight, dream-light catching the liquid surface */}
-      <path d="M46,26 C50,21 60,20 65,25 C58,27.5 51,28.5 46,26 Z" fill="#FFF7DE" opacity="0.55" />
-    </svg>
-  );
-}
 
 // ---- Logo ----
 const LOGO_SRC = "icons/logo.png";
@@ -1582,16 +1525,7 @@ function HeaderMeta({ userId }) {
 }
 
 function Footer({ theme }) {
-  return (
-    <div className="wb-footer">
-      {theme === "surreal" ? (
-        <div className="wb-melting-dollar-wrap">
-          <MeltingDollarSign />
-        </div>
-      ) : null}
-      <p className="wb-footer-line">DC</p>
-    </div>
-  );
+  return <div className="wb-footer" />;
 }
 
 function Wishboard({ userId, userEmail }) {
