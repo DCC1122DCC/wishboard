@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<link rel="icon" type="image/png" href="icons/logo.png">
-<link rel="apple-touch-icon" href="icons/logo.png">
-<meta property="og:image" content="icons/logo.png">
+<link rel="icon" type="image/png" href="icons/finalicon.png">
+<link rel="apple-touch-icon" href="icons/finalicon.png">
+<meta property="og:image" content="icons/finalicon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Wishboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -118,13 +118,48 @@
                 box-shadow 1.6s cubic-bezier(.34,.2,.4,1),
                 border-radius 1.6s cubic-bezier(.34,.2,.4,1);
   }
-  .wb-root[data-theme="surreal"] .wb-card:hover {
-    /* subtle liquid droop: soft skew + asymmetric radius + slight downward stretch */
-    transform: translateY(3px) scaleY(1.03) skewX(-1.2deg);
-    border-radius: 46% 54% 38% 62% / 30% 32% 68% 70%;
-    box-shadow: 0 16px 26px -6px rgba(180,90,30,.34), 0 22px 34px -10px rgba(14,90,110,.36);
+  /* Scoped to real mouse/hover devices only — on touch, :hover can get "stuck"
+     after a tap and leave the card permanently warped, which is the mobile
+     instability this fixes. Touch instead gets the brief open/close warp below. */
+  @media (hover: hover) and (pointer: fine) {
+    .wb-root[data-theme="surreal"] .wb-card:hover {
+      /* subtle liquid droop: soft skew + asymmetric radius + slight downward stretch */
+      transform: translateY(3px) scaleY(1.03) skewX(-1.2deg);
+      border-radius: 46% 54% 38% 62% / 30% 32% 68% 70%;
+      box-shadow: 0 16px 26px -6px rgba(180,90,30,.34), 0 22px 34px -10px rgba(14,90,110,.36);
+    }
   }
-  .wb-root[data-theme="surreal"] .wb-title { font-size: 40px; letter-spacing: -0.01em; }
+  /* Brief, controlled surreal "event" when a pin is opened/closed — replaces
+     continuous ambient warping on mobile with a short settle-in/out effect.
+     Runs once per mount/unmount, never loops, never touches layout/scroll. */
+  @keyframes wb-dali-pin-in {
+    0% { transform: scale(.94) skewX(2deg) translateY(10px); border-radius: 40% 60% 55% 45% / 50% 45% 55% 50%; opacity: .5; }
+    60% { transform: scale(1.015) skewX(-0.6deg) translateY(-2px); border-radius: var(--radius-sheet); opacity: 1; }
+    100% { transform: scale(1) skewX(0) translateY(0); border-radius: var(--radius-sheet); opacity: 1; }
+  }
+  @keyframes wb-dali-pin-out {
+    0% { transform: scale(1) skewX(0) translateY(0); border-radius: var(--radius-sheet); opacity: 1; }
+    100% { transform: scale(.92) skewX(2.5deg) translateY(14px); border-radius: 46% 54% 60% 40% / 55% 40% 60% 45%; opacity: 0; }
+  }
+  .wb-root[data-theme="surreal"] .wb-detail-sheet.wb-dali-anim-in { animation: wb-dali-pin-in .5s cubic-bezier(.3,.15,.25,1) both; }
+  .wb-root[data-theme="surreal"] .wb-detail-sheet.wb-dali-anim-out { animation: wb-dali-pin-out .32s cubic-bezier(.5,0,.75,0) both; }
+  /* Wishlist → Transcended: the pin visibly detaches, melts, and glides up and
+     away toward the tabs row before the state finishes moving underneath it. */
+  @keyframes wb-transcend-melt {
+    0% { transform: translate(0,0) scale(1) skewX(0deg) rotate(0deg); border-radius: var(--radius-card); opacity: 1; filter: blur(0); }
+    30% { transform: translate(4px, 6px) scale(1.03) skewX(-3deg) rotate(-1deg); border-radius: 42% 58% 55% 45% / 50% 46% 54% 60%; opacity: .95; filter: blur(0); }
+    100% { transform: translate(50px, -160px) scale(.3) skewX(6deg) rotate(5deg); border-radius: 50%; opacity: 0; filter: blur(2px); }
+  }
+  .wb-root[data-theme="surreal"] .wb-card.wb-card-transcending {
+    animation: wb-transcend-melt .62s cubic-bezier(.32,.06,.28,1) forwards;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .wb-root[data-theme="surreal"] .wb-title {
+    font-size: 40px; letter-spacing: -0.01em;
+    color: #FFF3C4;
+    text-shadow: 0 1px 6px rgba(40,20,5,.45);
+  }
   .wb-root[data-theme="surreal"] .wb-sheet h2,
   .wb-root[data-theme="surreal"] .wb-detail-title { font-style: italic; }
   .wb-root[data-theme="surreal"] .wb-tab { background: #E9CE96; }
@@ -142,7 +177,8 @@
   .wb-root[data-theme="surreal"] .wb-delete.wb-delete-quiet {
     border-radius: 38% 62% 55% 45% / 55% 40% 60% 45%;
   }
-  /* Bright, luminous text for key readability elements against the deep sky/sand gradient */
+  /* Bright, luminous text for key readability elements against the deep sky/sand gradient —
+     one coherent palette across the title, subtitle, totals, empty states, and Log Out. */
   .wb-root[data-theme="surreal"] .wb-subtitle {
     color: #FFF3C4;
     text-shadow: 0 1px 6px rgba(40,20,5,.45);
@@ -151,6 +187,30 @@
     color: #FFE9A8;
     opacity: .95;
     text-shadow: 0 1px 5px rgba(40,20,5,.4);
+  }
+  .wb-root[data-theme="surreal"] .wb-summary-label,
+  .wb-root[data-theme="surreal"] .wb-summary-total.wishlist,
+  .wb-root[data-theme="surreal"] .wb-summary-total.purchased,
+  .wb-root[data-theme="surreal"] .wb-summary-total.transcended {
+    color: #FFF3C4;
+    text-shadow: 0 1px 6px rgba(40,20,5,.45);
+  }
+  .wb-root[data-theme="surreal"] .wb-empty {
+    color: #FFE9A8;
+    text-shadow: 0 1px 5px rgba(40,20,5,.4);
+  }
+  .wb-root[data-theme="surreal"] .wb-logout {
+    color: #FFF3C4;
+    border-color: rgba(255,243,196,.45);
+    text-shadow: 0 1px 5px rgba(40,20,5,.4);
+  }
+  /* the sticky summary bar sits on the light sandy --paper tone, which would
+     wash out bright text — give it a frosted dark panel so contrast holds */
+  .wb-root[data-theme="surreal"] .wb-summary-sticky {
+    background: rgba(20, 42, 56, 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-bottom-color: rgba(255,243,196,.25);
   }
 
   .wb-badge {
@@ -563,7 +623,7 @@ const LotusIcon = (p) => (
 const PaletteIcon = (p) => <Icon d="M12 2a10 10 0 100 20c1.4 0 2.1-.7 2.1-1.8 0-.5-.2-.9-.4-1.3-.2-.4-.4-.8-.4-1.2 0-.8.6-1.4 1.4-1.4h1.6a3.3 3.3 0 003.3-3.3C19.6 6.6 16.2 2 12 2z" {...p}><circle cx="7" cy="12" r="1.4" fill="currentColor" stroke="none" /><circle cx="9.5" cy="8" r="1.4" fill="currentColor" stroke="none" /><circle cx="14.5" cy="8" r="1.4" fill="currentColor" stroke="none" /></Icon>;
 
 // ---- Logo ----
-const LOGO_SRC = "icons/logo.png";
+const LOGO_SRC = "icons/finalicon.png";
 function Logo({ size = 26 }) {
   const [failed, setFailed] = useState(false);
   if (failed) return <SunIcon size={size} />;
@@ -583,7 +643,7 @@ function Logo({ size = 26 }) {
 const THEMES = [
   { id: "original", name: "Original", swatch: "#B08D57" },
   { id: "absurdist", name: "Consumerist", swatch: "#FF2D78" },
-  { id: "surreal", name: "Dali", swatch: "#FF8A65" },
+  { id: "surreal", name: "Dalí", swatch: "#FF8A65" },
 ];
 
 function ThemeSwitcher({ theme, onChange }) {
@@ -632,17 +692,69 @@ const PURCHASE_MESSAGES = [
   "Desire acquired.",
   "Consider it acquired.",
   "You wanted it.",
+  "It's yours now.",
+  "The wanting won.",
+  "And now you own it.",
+  "Impulse, but make it official.",
+  "Acquired. Naturally.",
+  "A little closer to the dream.",
+  "You did it to yourself.",
+  "You made it real.",
+  "Wanting, fulfilled.",
+  "You couldn't leave it there.",
+  "Well, that happened.",
+  "Desire has consequences.",
+  "So much for restraint.",
+  "The fantasy became a receipt.",
+  "And now it's in the house.",
+  "You made a decision.",
+  "It followed you home.",
 ];
 // Wishlist -> Transcended (signature transition)
 const TRANSCEND_MESSAGES = [
   "\"Desire...Transcended!\" \u2014 Darling",
   "Attachment dissolved.",
+  "And just like that, you let it go.",
+  "Desire released.",
+  "You wanted it. Then you didn't.",
+  "Freedom looks good on you.",
+  "Not everything is meant to be kept.",
+  "This, too, shall pass.",
+  "Higher things await.",
+  "The wanting fades.",
+  "You can want something without owning it.",
+  "Beautiful. And unnecessary.",
+  "Tempting. But no.",
+  "She was lovely. Anyway.",
+  "A passing desire.",
+  "Consider yourself released.",
+  "You admired it. That was enough.",
+  "The fantasy remains. The purchase does not.",
+  "Wanting is not owning.",
+  "Let her go.",
 ];
 // Transcended -> Wishlist (playful relapse)
 const RELAPSE_MESSAGES = [
   "Girl. We just left.",
   "Enlightenment postponed.",
   "And we're back.",
+  "So much for detachment.",
+  "You missed her, huh?",
+  "The desire returns.",
+  "Apparently, we're not done.",
+  "One more time.",
+  "It's calling again.",
+  "Well... never mind.",
+  "Oh, you're back.",
+  "We spoke about this.",
+  "Apparently, you want it again.",
+  "Detachment was temporary.",
+  "Never say never.",
+  "She's back on the board.",
+  "The heart has reconsidered.",
+  "So much for growth.",
+  "A brief period of enlightenment.",
+  "You weren't finished wanting it.",
 ];
 const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
@@ -798,6 +910,7 @@ function PriceTag({ value }) {
 
 function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
   const [imgError, setImgError] = useState(false);
+  const [transcending, setTranscending] = useState(false);
   const initial = (item.title || "?").trim().charAt(0).toUpperCase();
 
   const handleDelete = (e) => {
@@ -813,12 +926,30 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
     e.dataTransfer.effectAllowed = "move";
   };
 
+  // On Dali, the pin visibly melts/glides toward the Transcended tab before the
+  // real move happens. The state update always fires on its own timer — the
+  // animation is purely cosmetic and never blocks or delays the DB write logic
+  // beyond this one short, fixed window.
+  const handleTranscend = () => {
+    if (theme === "surreal") {
+      if (transcending) return;
+      setTranscending(true);
+      setTimeout(() => onMove(item.id, "transcended"), 620);
+    } else {
+      onMove(item.id, "transcended");
+    }
+  };
+
   const badgeText = item.status === "wishlist" ? "WANT" : item.status === "purchased" ? "OWNED" : "RELEASED";
   // Red trash is a Consumerist-only accent; Original and Dali get a quiet gray X.
   const isQuietDelete = theme !== "absurdist";
 
   return (
-    <div className="wb-card" draggable="true" onDragStart={handleDragStart}>
+    <div
+      className={`wb-card ${transcending ? "wb-card-transcending" : ""}`}
+      draggable="true"
+      onDragStart={handleDragStart}
+    >
       <button
         className={`wb-delete ${isQuietDelete ? "wb-delete-quiet" : ""}`}
         onClick={handleDelete}
@@ -850,7 +981,7 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
               <button className="wb-btn-move to-purchased" onClick={() => onMove(item.id, "purchased")}>
                 <BagIcon size={13} /> Purchased
               </button>
-              <button className="wb-btn-move to-transcended" onClick={() => onMove(item.id, "transcended")}>
+              <button className="wb-btn-move to-transcended" onClick={handleTranscend} disabled={transcending}>
                 <LotusIcon size={13} /> Transcend
               </button>
             </>
@@ -894,7 +1025,7 @@ function EditPinFields({ item, onChange }) {
   );
 }
 
-function PinDetailModal({ item, tabs, onClose, onMoveStatus, onMoveCustomTab, onDelete, onSaveNotes, onSaveEdits }) {
+function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustomTab, onDelete, onSaveNotes, onSaveEdits }) {
   const [notes, setNotes] = useState(item.notes || "");
   const [savingNotes, setSavingNotes] = useState(false);
   const [dragY, setDragY] = useState(0);
@@ -902,11 +1033,23 @@ function PinDetailModal({ item, tabs, onClose, onMoveStatus, onMoveCustomTab, on
   const [editing, setEditing] = useState(false);
   const [draftItem, setDraftItem] = useState(item);
   const [savingEdits, setSavingEdits] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     setNotes(item.notes || "");
     setDraftItem(item);
   }, [item.id]);
+
+  // On Dali, play a brief controlled warp before unmounting rather than an
+  // instant close — settles smoothly, never blocks the actual close.
+  const requestClose = () => {
+    if (theme === "surreal" && !closing) {
+      setClosing(true);
+      setTimeout(onClose, 300);
+    } else {
+      onClose();
+    }
+  };
 
   const handleNotesBlur = async () => {
     if (notes === (item.notes || "")) return;
@@ -918,7 +1061,7 @@ function PinDetailModal({ item, tabs, onClose, onMoveStatus, onMoveCustomTab, on
   const handleDelete = () => {
     if (window.confirm(`Delete "${item.title}"? This can't be undone.`)) {
       onDelete(item.id);
-      onClose();
+      requestClose();
     }
   };
 
@@ -947,17 +1090,18 @@ function PinDetailModal({ item, tabs, onClose, onMoveStatus, onMoveCustomTab, on
     if (delta > 0) setDragY(delta);
   };
   const onImgTouchEnd = () => {
-    if (dragY > 90) { onClose(); return; }
+    if (dragY > 90) { requestClose(); return; }
     setDragY(0);
     dragStartRef.current = null;
   };
 
   const initial = (item.title || "?").trim().charAt(0).toUpperCase();
+  const daliAnimClass = theme === "surreal" ? (closing ? "wb-dali-anim-out" : "wb-dali-anim-in") : "";
 
   return (
-    <div className="wb-overlay wb-detail-overlay" onClick={onClose}>
+    <div className="wb-overlay wb-detail-overlay" onClick={requestClose}>
       <div
-        className="wb-detail-sheet"
+        className={`wb-detail-sheet ${daliAnimClass}`}
         onClick={(e) => e.stopPropagation()}
         style={{
           transform: dragY ? `translateY(${dragY}px)` : undefined,
@@ -965,7 +1109,7 @@ function PinDetailModal({ item, tabs, onClose, onMoveStatus, onMoveCustomTab, on
           transition: dragY ? "none" : "transform .2s ease, opacity .2s ease",
         }}
       >
-        <button className="wb-close-x" onClick={onClose} aria-label="Close"><XIcon size={18} /></button>
+        <button className="wb-close-x" onClick={requestClose} aria-label="Close"><XIcon size={18} /></button>
         <div
           className="wb-detail-img-wrap"
           onTouchStart={onImgTouchStart}
@@ -1777,6 +1921,7 @@ function Wishboard({ userId, userEmail }) {
         <PinDetailModal
           item={openItem}
           tabs={customTabs}
+          theme={theme}
           onClose={() => setOpenItemId(null)}
           onMoveStatus={handleMoveStatus}
           onMoveCustomTab={handleMoveCustomTab}
