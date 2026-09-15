@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<link rel="icon" type="image/png" href="icons/finalicon.png">
-<link rel="apple-touch-icon" href="icons/finalicon.png">
-<meta property="og:image" content="icons/finalicon.png">
+<link rel="icon" type="image/png" href="icons/plswork.png">
+<link rel="apple-touch-icon" href="icons/plswork.png">
+<meta property="og:image" content="icons/plswork.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Wishboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -491,10 +491,8 @@
   .wb-footer { margin: 40px 20px 0; padding: 14px 4px 4px; border-top: 1px solid var(--line); text-align: center; }
 
   /* ---- app icon (Logo) ---- */
-  /* The source artwork (icons/finalicon.png) has empty margin baked in around
-     the mark. object-fit:contain would just show that margin as dead space,
-     so instead the image is clipped to a rounded square and zoomed in slightly
-     to crop the padding away, the way a real app icon fills its tile. */
+  /* icons/plswork.png is already cropped edge-to-edge with no baked-in
+     margin, so the tile just needs rounded corners — no zoom/scale needed. */
   .wb-logo-frame {
     display: inline-flex;
     align-items: center;
@@ -507,7 +505,6 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scale(1.45);
     display: block;
   }
 </style>
@@ -671,7 +668,7 @@ const MeltingClockIcon = ({ size = 26, ...rest }) => (
 );
 
 // ---- Logo ----
-const LOGO_SRC = "icons/finalicon.png";
+const LOGO_SRC = "icons/plswork.png";
 function Logo({ size = 26 }) {
   const [failed, setFailed] = useState(false);
   if (failed) return <SunIcon size={size} />;
