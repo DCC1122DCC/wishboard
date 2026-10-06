@@ -539,6 +539,50 @@
     .wb-root[data-theme="absurdist"] .wb-title { font-size: 26px; }
     .wb-root[data-theme="surreal"] .wb-title { font-size: 34px; }
   }
+
+  /* ============== NEW: new-pin sheet, upload, crop, drafts prompt, post-it ============== */
+
+  /* new-pin sheet: centered on top of a frozen background */
+  .wb-add-overlay { align-items: center; }
+  .wb-add-overlay .wb-sheet { border-radius: var(--radius-sheet); margin: 16px; max-height: 90vh; }
+
+  /* Link to Product / Upload Photo / Quick Note option row.
+     Upload Photo is a <label> wrapping the real file input, so one tap opens
+     the native iPhone sheet (Photo Library / Take Photo / Choose File). */
+  .wb-imgmode label {
+    flex: 1; padding: 9px 4px; border-radius: var(--radius-small); border: 1px solid var(--line);
+    background: #fff; font-size: 11.5px; font-weight: 600; cursor: pointer; color: var(--ink);
+    text-align: center; display: block;
+  }
+  .wb-imgmode label.active { background: var(--plum); color: #fff; border-color: var(--plum); }
+  .wb-imgmode button, .wb-imgmode label {
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    margin: 0; position: relative; line-height: 1.2; font-family: var(--font-body);
+  }
+  .wb-file-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+
+  /* fixed square crop: hide resize handles, image moves/zooms underneath */
+  .wb-cropper-wrap { max-height: 340px; }
+  .wb-cropper-wrap img { max-height: 340px; }
+  .wb-cropper-wrap .cropper-point, .wb-cropper-wrap .cropper-line, .wb-cropper-wrap .cropper-center { display: none; }
+  .wb-cropper-wrap .cropper-view-box { outline: 2px solid #fff; outline-color: rgba(255,255,255,.95); }
+  .wb-zoom-row { display: flex; gap: 8px; margin-top: 8px; }
+  .wb-zoom-row button { flex: 1; padding: 8px; border: 1px solid var(--line); background: #fff; border-radius: var(--radius-small); font-size: 16px; font-weight: 600; cursor: pointer; color: var(--ink); }
+
+  /* save-to-drafts / discard prompt */
+  .wb-confirm-overlay { position: fixed; inset: 0; background: rgba(30,26,22,.45); display: flex; align-items: center; justify-content: center; z-index: 50; }
+  .wb-confirm { background: var(--paper); border-radius: var(--radius-sheet); padding: 20px; width: calc(100% - 48px); max-width: 320px; }
+  .wb-confirm h3 { font-family: var(--font-display); font-size: 18px; margin: 0 0 6px; }
+  .wb-confirm p { font-size: 12.5px; color: var(--muted); margin: 0 0 14px; }
+  .wb-confirm .wb-cancel-btn { width: 100%; margin-top: 8px; flex: none; }
+  .wb-confirm .wb-save-btn { margin-top: 0; }
+
+  /* post-it */
+  .wb-postit {
+    width: 100%; aspect-ratio: 1 / 1; background: #FFF3A8; display: flex; align-items: center; justify-content: center;
+    padding: 16px; text-align: center; font-family: var(--font-display); font-size: 17px; line-height: 1.25;
+    color: #3a3220; overflow-wrap: anywhere; box-shadow: inset 0 -10px 14px -10px rgba(120,90,0,.25);
+  }
 </style>
 </head>
 <body>
@@ -577,6 +621,12 @@ const hostnameOf = (url) => {
     return "";
   }
 };
+
+// Quick Note ("Post-it") items reuse the existing `image` column with this
+// marker value, so no Supabase schema change is needed. Anything with this
+// marker renders as a Post-it card instead of a photo.
+const POSTIT_IMAGE = "postit://note";
+const isPostit = (item) => Boolean(item) && item.image === POSTIT_IMAGE;
 
 // --- link auto-fill: pull og:title / og:image / price out of a product page ---
 // Most shopping sites don't allow direct cross-origin fetches, so this tries the
@@ -665,6 +715,7 @@ const PlusIcon = (p) => <Icon d="M12 5v14M5 12h14" {...p} />;
 const XIcon = (p) => <Icon d="M18 6 6 18M6 6l12 12" {...p} />;
 const LinkIcon = (p) => <Icon d="M10 13a5 5 0 007.07 0l1.93-1.93a5 5 0 00-7.07-7.07L10.5 5.5M14 11a5 5 0 00-7.07 0L5 12.93a5 5 0 007.07 7.07L13.5 18.5" {...p} />;
 const UploadIcon = (p) => <Icon d="M12 3v12m0-12 4 4m-4-4-4 4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" {...p} />;
+const NoteIcon = (p) => <Icon d="M5 4h14v11l-5 5H5zM14 20v-5h5" {...p} />;
 const BagIcon = (p) => <Icon d="M6 7h12l1 14H5L6 7zM9 7a3 3 0 016 0" {...p} />;
 const UndoIcon = (p) => <Icon d="M9 14 4 9l5-5M4 9h10a5 5 0 015 5v1" {...p} />;
 const TrashIcon = (p) => <Icon d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v6M14 11v6" {...p} />;
@@ -896,6 +947,7 @@ function useWishboardData(userId) {
       .single();
     if (error) throw error;
     setItems((prev) => [data, ...prev]);
+    return data; // returned so the board can scroll to the new pin
   }, [userId]);
 
   const deleteItem = useCallback(async (id) => {
@@ -975,6 +1027,8 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
   const [imgError, setImgError] = useState(false);
   const [transcending, setTranscending] = useState(false);
   const initial = (item.title || "?").trim().charAt(0).toUpperCase();
+  const postit = isPostit(item);
+  const hidePrice = postit && !Number(item.price);
 
   const handleDelete = (e) => {
     e.stopPropagation();
@@ -1010,6 +1064,7 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
   return (
     <div
       className={`wb-card ${transcending ? "wb-card-transcending" : ""}`}
+      data-pin-id={item.id}
       draggable="true"
       onDragStart={handleDragStart}
     >
@@ -1022,20 +1077,22 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
       </button>
       <div className="wb-imgwrap" onClick={() => onOpen(item)}>
         {theme === "absurdist" ? <span className="wb-badge wb-badge-corner">{badgeText}</span> : null}
-        {item.image && !imgError ? (
+        {postit ? (
+          <div className="wb-postit">{item.title}</div>
+        ) : item.image && !imgError ? (
           <img src={item.image} alt={item.title} onError={() => setImgError(true)} />
         ) : (
           <div className="wb-placeholder"><span>{initial}</span></div>
         )}
-        <PriceTag value={item.price} />
+        {hidePrice ? null : <PriceTag value={item.price} />}
       </div>
-      <div className="wb-body">
-        <p className="wb-item-title">{item.title}</p>
+      <div className="wb-body" style={hidePrice ? { paddingTop: 12 } : undefined}>
+        {postit ? null : <p className="wb-item-title">{item.title}</p>}
         {item.link ? (
           <a className="wb-item-source" href={item.link} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
             {hostnameOf(item.link) || "view item"}
           </a>
-        ) : (
+        ) : postit ? null : (
           <p className="wb-item-source">&nbsp;</p>
         )}
         <div className="wb-item-actions">
@@ -1082,7 +1139,11 @@ function EditPinFields({ item, onChange }) {
       </div>
       <div className="wb-field">
         <label>Image URL</label>
-        <input type="text" value={item.image || ""} onChange={(e) => onChange({ image: e.target.value })} />
+        <input
+          type="text"
+          value={item.image === POSTIT_IMAGE ? "" : (item.image || "")}
+          onChange={(e) => onChange({ image: e.target.value })}
+        />
       </div>
     </>
   );
@@ -1133,11 +1194,13 @@ function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustom
   const saveEditing = async () => {
     setSavingEdits(true);
     try {
+      const imgVal = (draftItem.image || "").trim();
       await onSaveEdits(item.id, {
         title: (draftItem.title || "").trim(),
         price: parseFloat(draftItem.price) || 0,
         link: (draftItem.link || "").trim(),
-        image: (draftItem.image || "").trim(),
+        // a Post-it keeps its Post-it look unless a real image URL is entered
+        image: isPostit(item) && (!imgVal || imgVal === POSTIT_IMAGE) ? POSTIT_IMAGE : imgVal,
       });
       setEditing(false);
     } finally {
@@ -1179,7 +1242,9 @@ function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustom
           onTouchMove={onImgTouchMove}
           onTouchEnd={onImgTouchEnd}
         >
-          {item.image ? (
+          {isPostit(item) ? (
+            <div className="wb-postit" style={{ aspectRatio: "auto", height: 220 }}>{item.title}</div>
+          ) : item.image ? (
             <img src={item.image} alt={item.title} />
           ) : (
             <div className="wb-placeholder"><span>{initial}</span></div>
@@ -1204,7 +1269,7 @@ function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustom
                   <EditIcon size={13} /> Edit
                 </button>
               </div>
-              <p className="wb-detail-price">{currency(item.price)}</p>
+              {isPostit(item) && !Number(item.price) ? null : <p className="wb-detail-price">{currency(item.price)}</p>}
               {item.link ? (
                 <a className="wb-item-source" href={item.link} target="_blank" rel="noreferrer" style={{ marginBottom: 16 }}>
                   {hostnameOf(item.link) || "view item"}
@@ -1267,9 +1332,12 @@ function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustom
   );
 }
 
+const AUTOFILL_FAIL_MSG = "Couldn't auto-fill link, upload photo instead!";
+
 function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
-  const [imgMode, setImgMode] = useState("upload");
-  const [imageUrl, setImageUrl] = useState("");
+  // mode: "link" (Link to Product) | "photo" (Upload Photo) | "note" (Quick Note)
+  const [mode, setMode] = useState("link");
+  const [imageUrl, setImageUrl] = useState(""); // only ever set by link auto-fill — users can't type an image URL
   const [uploadedImage, setUploadedImage] = useState("");
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
@@ -1280,6 +1348,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [restoredDraft, setRestoredDraft] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false); // X → Save to Drafts / Discard
 
   // --- link auto-fill state ---
   const [fetchingLink, setFetchingLink] = useState(false);
@@ -1302,10 +1371,11 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
   };
 
   const reset = () => {
-    setImgMode("upload"); setImageUrl(""); setUploadedImage("");
+    setMode("link"); setImageUrl(""); setUploadedImage("");
     setTitle(""); setPrice(""); setLink(""); setNotes(""); setSaveError("");
     setLinkFetchError(""); setFetchingLink(false); setRestoredDraft(false);
     setPinTarget("wishlist");
+    setConfirmOpen(false);
     destroyCropper();
     setRawImage("");
     if (fileRef.current) fileRef.current.value = "";
@@ -1322,7 +1392,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
       }
       localStorage.setItem(
         draftKey,
-        JSON.stringify({ title, price, link, notes, imgMode, imageUrl, uploadedImage, pinTarget })
+        JSON.stringify({ title, price, link, notes, mode, imageUrl, uploadedImage, pinTarget })
       );
     } catch {
       // storage can fail (private browsing, quota) — draft loss is non-fatal
@@ -1343,7 +1413,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
           setPrice(draft.price || "");
           setLink(draft.link || "");
           setNotes(draft.notes || "");
-          setImgMode(draft.imgMode || "upload");
+          setMode(draft.mode || (draft.uploadedImage ? "photo" : "link"));
           setImageUrl(draft.imageUrl || "");
           setUploadedImage(draft.uploadedImage || "");
           setPinTarget(draft.pinTarget || "wishlist");
@@ -1358,11 +1428,19 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
     }
   }, [open]);
 
+  // Upload Photo is a <label> around the file input, so tapping it opens the
+  // native picker directly (on iPhone: Photo Library / Take Photo / Choose File).
   const handleFile = (e) => {
-    const file = e.target.files && e.target.files[0];
+    const input = e.target;
+    const file = input.files && input.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setRawImage(reader.result); // goes to the cropper, not straight to uploadedImage
+    reader.onload = () => {
+      setSaveError("");
+      setRawImage(reader.result); // goes to the cropper, not straight to uploadedImage
+      setMode("photo");
+      input.value = ""; // lets the same photo be picked again later
+    };
     reader.readAsDataURL(file);
   };
 
@@ -1375,17 +1453,31 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
   const handleCropperImgLoad = () => {
     destroyCropper();
     if (cropperImgRef.current && window.Cropper) {
+      // Fixed square frame: the box itself never moves or resizes — the photo
+      // moves/zooms underneath it, and what's inside the square is what's saved.
       cropperRef.current = new window.Cropper(cropperImgRef.current, {
-        aspectRatio: NaN, // freeform — no forced aspect ratio
-        viewMode: 1, // crop box is clamped inside the photo's own bounds
-        dragMode: "move", // phone-style: drag moves the existing box, resize via its own edge/corner handles
+        aspectRatio: 1,
+        viewMode: 1, // the photo always covers the frame — no empty margins
+        dragMode: "move", // drag = reposition the photo
         autoCropArea: 0.9,
+        cropBoxMovable: false,
+        cropBoxResizable: false,
+        toggleDragModeOnDblclick: false,
+        zoomable: true,
+        zoomOnTouch: true,
+        zoomOnWheel: true,
+        wheelZoomRatio: 0.1,
+        guides: false,
+        center: false,
+        highlight: false,
         background: false,
         responsive: true,
-        cropBoxMovable: true,
-        cropBoxResizable: true,
       });
     }
+  };
+
+  const zoomCrop = (delta) => {
+    if (cropperRef.current) cropperRef.current.zoom(delta);
   };
 
   const applyCrop = () => {
@@ -1399,7 +1491,8 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
     });
     if (canvas) {
       setUploadedImage(canvas.toDataURL("image/jpeg", 0.85));
-      setImgMode("upload");
+      setImageUrl("");
+      setMode("photo");
     }
     destroyCropper();
     setRawImage("");
@@ -1411,6 +1504,11 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
     if (fileRef.current) fileRef.current.value = "";
   };
 
+  const handleCropperImgError = () => {
+    cancelCrop();
+    setSaveError("That file couldn't be opened as a photo — try a different one.");
+  };
+
   const handleAutoFill = async (urlOverride) => {
     const target = (urlOverride || link).trim();
     if (!target || fetchingLink) return;
@@ -1419,13 +1517,13 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
     try {
       const meta = await fetchProductDetails(target);
       if (meta.title) setTitle(meta.title);
-      if (meta.image) { setImgMode("url"); setImageUrl(meta.image); }
+      if (meta.image && !uploadedImage) setImageUrl(meta.image);
       if (meta.price) setPrice(meta.price);
       if (!meta.title && !meta.image && !meta.price) {
-        setLinkFetchError("Found the page, but no usable details on it — fill these in yourself.");
+        setLinkFetchError(AUTOFILL_FAIL_MSG);
       }
     } catch (err) {
-      setLinkFetchError("Couldn't auto-fill from that link — the site may block this, or check the URL.");
+      setLinkFetchError(AUTOFILL_FAIL_MSG);
     } finally {
       setFetchingLink(false);
     }
@@ -1438,41 +1536,49 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
     }
   };
 
-  const canSave = title.trim().length > 0 && !saving;
+  const canSave = title.trim().length > 0 && !saving && !rawImage;
 
-  const requestClose = () => {
+  // Save to Drafts: keep the in-progress pin so it resumes next time the sheet opens.
+  const saveToDrafts = () => {
     saveDraft();
     reset();
     onClose();
   };
 
-  const handleCancel = () => {
+  // Discard: wipe the in-progress pin entirely.
+  const discardPin = () => {
+    clearDraft();
+    reset();
+    onClose();
+  };
+
+  // Backdrop tap / swipe-down keep their existing, non-destructive behavior:
+  // the pin is saved as a resumable draft.
+  const requestClose = saveToDrafts;
+
+  // X: nothing typed yet → just close; otherwise ask Save to Drafts / Discard.
+  const handleX = () => {
     if (!hasUnsavedInput()) {
-      clearDraft();
-      reset();
-      onClose();
+      discardPin();
       return;
     }
-    if (window.confirm("Discard this pin? This can't be undone.")) {
-      clearDraft();
-      reset();
-      onClose();
-    }
+    setConfirmOpen(true);
   };
 
   const isBuiltInTarget = pinTarget === "wishlist" || pinTarget === "purchased" || pinTarget === "transcended";
 
   const handleSave = async () => {
     if (!canSave) return;
+    const isNote = mode === "note";
     setSaving(true);
     setSaveError("");
     try {
       await onAdd({
         title: title.trim(),
-        price: parseFloat(price) || 0,
-        image: imgMode === "upload" ? uploadedImage : imageUrl.trim(),
-        link: link.trim(),
-        notes: notes.trim(),
+        price: isNote ? 0 : parseFloat(price) || 0,
+        image: isNote ? POSTIT_IMAGE : (uploadedImage || imageUrl.trim()),
+        link: isNote ? "" : link.trim(),
+        notes: isNote ? "" : notes.trim(),
         status: isBuiltInTarget ? pinTarget : "wishlist",
         custom_tab_id: isBuiltInTarget ? null : pinTarget,
         purchased_at: pinTarget === "purchased" ? new Date().toISOString() : null,
@@ -1500,7 +1606,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
   };
 
   if (!open) return null;
-  const preview = imgMode === "upload" ? uploadedImage : imageUrl;
+  const preview = uploadedImage || imageUrl;
 
   const targetLabel = pinTarget === "wishlist" ? "Wishlist"
     : pinTarget === "purchased" ? "Purchased"
@@ -1508,98 +1614,111 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
     : (tabs.find((t) => t.id === pinTarget) || {}).name || "Tab";
 
   return (
-    <div className="wb-overlay" onClick={requestClose}>
-      <div
-        className="wb-sheet"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          transform: dragY ? `translateY(${dragY}px)` : undefined,
-          transition: dragY ? "none" : "transform .2s ease",
-        }}
-      >
+    <>
+      <div className="wb-overlay wb-add-overlay" onClick={requestClose}>
         <div
-          className="wb-sheet-handle"
-          onTouchStart={onHandleTouchStart}
-          onTouchMove={onHandleTouchMove}
-          onTouchEnd={onHandleTouchEnd}
-        />
-        <button className="wb-close-x" onClick={requestClose} aria-label="Close"><XIcon size={20} /></button>
-        <h2>Pin something new</h2>
-        {restoredDraft ? <p className="wb-draft-hint">Continuing your last unfinished pin.</p> : null}
+          className="wb-sheet"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            transform: dragY ? `translateY(${dragY}px)` : undefined,
+            transition: dragY ? "none" : "transform .2s ease",
+          }}
+        >
+          <div
+            className="wb-sheet-handle"
+            onTouchStart={onHandleTouchStart}
+            onTouchMove={onHandleTouchMove}
+            onTouchEnd={onHandleTouchEnd}
+          />
+          <button className="wb-close-x" onClick={handleX} aria-label="Close" type="button"><XIcon size={20} /></button>
+          <h2>Pin something new</h2>
+          {restoredDraft ? <p className="wb-draft-hint">Continuing your last unfinished pin.</p> : null}
 
-        <div className="wb-field">
-          <label>Pin to</label>
-          <div className="wb-detail-tabs">
-            <button type="button" className={pinTarget === "wishlist" ? "active" : ""} onClick={() => setPinTarget("wishlist")}>Wishlist</button>
-            <button type="button" className={pinTarget === "purchased" ? "active" : ""} onClick={() => setPinTarget("purchased")}>Purchased</button>
-            <button type="button" className={pinTarget === "transcended" ? "active" : ""} onClick={() => setPinTarget("transcended")}>Transcended</button>
-            {tabs.map((t) => (
-              <button type="button" key={t.id} className={pinTarget === t.id ? "active" : ""} onClick={() => setPinTarget(t.id)}>
-                {t.name}
-              </button>
-            ))}
+          <div className="wb-field">
+            <label>Pin to</label>
+            <div className="wb-detail-tabs">
+              <button type="button" className={pinTarget === "wishlist" ? "active" : ""} onClick={() => setPinTarget("wishlist")}>Wishlist</button>
+              <button type="button" className={pinTarget === "purchased" ? "active" : ""} onClick={() => setPinTarget("purchased")}>Purchased</button>
+              <button type="button" className={pinTarget === "transcended" ? "active" : ""} onClick={() => setPinTarget("transcended")}>Transcended</button>
+              {tabs.map((t) => (
+                <button type="button" key={t.id} className={pinTarget === t.id ? "active" : ""} onClick={() => setPinTarget(t.id)}>
+                  {t.name}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div className="wb-field">
-          <label>Link to the product (optional)</label>
-          <div className="wb-link-row">
-            <input
-              type="text"
-              placeholder="https://store.com/product"
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              onPaste={handleLinkPaste}
-            />
-            <button
-              type="button"
-              className="wb-autofill-btn"
-              disabled={!link.trim() || fetchingLink}
-              onClick={() => handleAutoFill()}
-            >
-              {fetchingLink ? "Fetching…" : "Auto-fill"}
+          {/* Link to Product  |  Upload Photo  |  Quick Note */}
+          <div className="wb-imgmode" style={{ marginBottom: 14 }}>
+            <button type="button" className={mode === "link" ? "active" : ""} onClick={() => setMode("link")}>
+              <LinkIcon size={13} /> Link to Product
+            </button>
+            <label className={mode === "photo" ? "active" : ""}>
+              <UploadIcon size={13} /> Upload Photo
+              <input
+                ref={fileRef}
+                className="wb-file-hidden"
+                type="file"
+                accept="image/*"
+                onChange={handleFile}
+              />
+            </label>
+            <button type="button" className={mode === "note" ? "active" : ""} onClick={() => setMode("note")}>
+              <NoteIcon size={13} /> Quick Note
             </button>
           </div>
-          <p className="wb-link-hint">
-            {fetchingLink
-              ? "Looking up the title, photo, and price…"
-              : "Paste a product link, then tap Auto-fill to grab its title, photo, and price."}
-          </p>
-          {linkFetchError ? <p className="wb-auth-error" style={{ marginTop: 6 }}>{linkFetchError}</p> : null}
-        </div>
 
-        <div className="wb-field">
-          <label>Photo</label>
-          {rawImage ? (
-            <>
-              <div className="wb-cropper-wrap">
-                <img ref={cropperImgRef} src={rawImage} onLoad={handleCropperImgLoad} alt="Crop preview" />
-              </div>
-              <p className="wb-crop-hint">Drag the crop box's own edges/corners to resize — the box stays within the photo.</p>
-              <div className="wb-cropper-actions">
-                <button type="button" className="wb-cropper-cancel" onClick={cancelCrop}>Cancel</button>
-                <button type="button" className="wb-save-btn" onClick={applyCrop}>Use this crop</button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="wb-imgmode">
-                <button className={imgMode === "upload" ? "active" : ""} onClick={() => setImgMode("upload")} type="button">
-                  <UploadIcon size={13} style={{ marginRight: 5, verticalAlign: -2 }} /> Upload photo
-                </button>
-                <button className={imgMode === "url" ? "active" : ""} onClick={() => setImgMode("url")} type="button">
-                  <LinkIcon size={13} style={{ marginRight: 5, verticalAlign: -2 }} /> Paste image link
+          {mode === "link" ? (
+            <div className="wb-field">
+              <label>Link to the product</label>
+              <div className="wb-link-row">
+                <input
+                  type="text"
+                  placeholder="https://store.com/product"
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                  onPaste={handleLinkPaste}
+                />
+                <button
+                  type="button"
+                  className="wb-autofill-btn"
+                  disabled={!link.trim() || fetchingLink}
+                  onClick={() => handleAutoFill()}
+                >
+                  {fetchingLink ? "Fetching…" : "Auto-fill"}
                 </button>
               </div>
-              {imgMode === "url" ? (
-                <input type="text" placeholder="https://example.com/photo.jpg" value={imageUrl}
-                       onChange={(e) => setImageUrl(e.target.value)} />
-              ) : (
-                <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} />
-              )}
-              {preview ? (
-                <div style={{ position: "relative", display: "inline-block", marginTop: 8 }}>
-                  <img className="wb-preview" src={preview} alt="Preview" style={{ marginTop: 0 }} />
+              <p className="wb-link-hint">
+                {fetchingLink
+                  ? "Looking up the title, photo, and price…"
+                  : "Paste a product link, then tap Auto-fill to grab its title, photo, and price."}
+              </p>
+              {linkFetchError ? <p className="wb-auth-error" style={{ marginTop: 6 }}>{linkFetchError}</p> : null}
+            </div>
+          ) : null}
+
+          {mode !== "note" ? (
+            rawImage ? (
+              <div className="wb-field">
+                <label>Crop photo</label>
+                <div className="wb-cropper-wrap">
+                  <img ref={cropperImgRef} src={rawImage} onLoad={handleCropperImgLoad} onError={handleCropperImgError} alt="Crop preview" />
+                </div>
+                <div className="wb-zoom-row">
+                  <button type="button" onClick={() => zoomCrop(-0.1)} aria-label="Zoom out">−</button>
+                  <button type="button" onClick={() => zoomCrop(0.1)} aria-label="Zoom in">+</button>
+                </div>
+                <p className="wb-crop-hint">Drag to reposition, pinch or tap +/− to zoom. The square is exactly what gets saved.</p>
+                <div className="wb-cropper-actions">
+                  <button type="button" className="wb-cropper-cancel" onClick={cancelCrop}>Cancel</button>
+                  <button type="button" className="wb-save-btn" onClick={applyCrop}>Use this crop</button>
+                </div>
+              </div>
+            ) : preview ? (
+              <div className="wb-field">
+                <label>Photo</label>
+                <div style={{ position: "relative", display: "inline-block" }}>
+                  <img className="wb-preview" src={preview} alt="Preview" style={{ marginTop: 0, width: 130, height: 130 }} />
                   <button
                     type="button"
                     onClick={clearChosenPhoto}
@@ -1613,42 +1732,73 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
                     <XIcon size={13} />
                   </button>
                 </div>
-              ) : null}
+              </div>
+            ) : mode === "photo" ? (
+              <p className="wb-link-hint" style={{ marginTop: -4, marginBottom: 14 }}>
+                Tap Upload Photo to choose from Photos, take a photo, or pick a file.
+              </p>
+            ) : null
+          ) : null}
+
+          {mode === "note" ? (
+            <div className="wb-field">
+              <label>Name of the item</label>
+              <input
+                type="text"
+                autoFocus
+                placeholder="e.g. Nike Air Max 95"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
+              />
+              <p className="wb-link-hint">A quick Post-it — no photo or link needed. You can add details later.</p>
+            </div>
+          ) : (
+            <>
+              <div className="wb-field">
+                <label>What is it?</label>
+                <input type="text" placeholder="e.g. Sherpa fleece jacket" value={title}
+                       onChange={(e) => setTitle(e.target.value)} />
+              </div>
+
+              <div className="wb-field">
+                <label>Price</label>
+                <input type="number" inputMode="decimal" step="0.01" min="0" placeholder="0.00" value={price}
+                       onChange={(e) => setPrice(e.target.value)} />
+              </div>
+
+              <div className="wb-field">
+                <label>Notes (optional)</label>
+                <textarea
+                  placeholder="Any thoughts on this one?"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                />
+              </div>
             </>
           )}
-        </div>
 
-        <div className="wb-field">
-          <label>What is it?</label>
-          <input type="text" placeholder="e.g. Sherpa fleece jacket" value={title}
-                 onChange={(e) => setTitle(e.target.value)} />
+          <div className="wb-sheet-actions">
+            <button className="wb-save-btn" disabled={!canSave} onClick={handleSave}>
+              <PlusIcon size={16} style={{ verticalAlign: -3, marginRight: 4 }} /> {saving ? "Saving…" : `Add to ${targetLabel}`}
+            </button>
+          </div>
+          {saveError ? <p className="wb-auth-error" style={{ marginTop: 10, marginBottom: 0 }}>{saveError}</p> : null}
         </div>
-
-        <div className="wb-field">
-          <label>Price</label>
-          <input type="number" inputMode="decimal" step="0.01" min="0" placeholder="0.00" value={price}
-                 onChange={(e) => setPrice(e.target.value)} />
-        </div>
-
-        <div className="wb-field">
-          <label>Notes (optional)</label>
-          <textarea
-            placeholder="Any thoughts on this one?"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-          />
-        </div>
-
-        <div className="wb-sheet-actions">
-          <button type="button" className="wb-cancel-btn" onClick={handleCancel}>Cancel</button>
-          <button className="wb-save-btn" disabled={!canSave} onClick={handleSave}>
-            <PlusIcon size={16} style={{ verticalAlign: -3, marginRight: 4 }} /> {saving ? "Saving…" : `Add to ${targetLabel}`}
-          </button>
-        </div>
-        {saveError ? <p className="wb-auth-error" style={{ marginTop: 10, marginBottom: 0 }}>{saveError}</p> : null}
       </div>
-    </div>
+
+      {confirmOpen ? (
+        <div className="wb-confirm-overlay" onClick={() => setConfirmOpen(false)}>
+          <div className="wb-confirm" onClick={(e) => e.stopPropagation()}>
+            <h3>Leave this pin?</h3>
+            <p>Save it to drafts to finish later, or discard it for good.</p>
+            <button type="button" className="wb-save-btn" onClick={saveToDrafts}>Save to Drafts</button>
+            <button type="button" className="wb-cancel-btn" onClick={discardPin}>Discard</button>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -1742,6 +1892,7 @@ function Wishboard({ userId, userEmail }) {
   const [sparkleKey, setSparkleKey] = useState(0);
   const [showSparkle, setShowSparkle] = useState(false);
   const [dragOverTab, setDragOverTab] = useState(null);
+  const [focusId, setFocusId] = useState(null); // newly-added pin to scroll into the center of the screen
   const [theme, setThemeState] = useState(() => {
     try {
       const saved = localStorage.getItem("wb-theme");
@@ -1755,12 +1906,43 @@ function Wishboard({ userId, userEmail }) {
     try { localStorage.setItem("wb-theme", t); } catch { /* ignore */ }
   };
 
-  // lock background scroll while a sheet/modal is open
+  // Freeze the page behind any open sheet/modal. Plain `overflow: hidden` isn't
+  // enough on iPhone (the page still slides under the sheet), so the body is
+  // pinned in place at the current scroll position and restored on close.
   useEffect(() => {
     const active = sheetOpen || Boolean(openItemId);
-    document.body.style.overflow = active ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    if (!active) return;
+    const y = window.scrollY;
+    const b = document.body.style;
+    const prev = { position: b.position, top: b.top, left: b.left, right: b.right, width: b.width, overflow: b.overflow };
+    b.position = "fixed";
+    b.top = `-${y}px`;
+    b.left = "0";
+    b.right = "0";
+    b.width = "100%";
+    b.overflow = "hidden";
+    return () => {
+      b.position = prev.position;
+      b.top = prev.top;
+      b.left = prev.left;
+      b.right = prev.right;
+      b.width = prev.width;
+      b.overflow = prev.overflow;
+      window.scrollTo(0, y);
+    };
   }, [sheetOpen, openItemId]);
+
+  // After a pin is added and the sheet has closed, bring the new pin to the
+  // center of the viewport.
+  useEffect(() => {
+    if (!focusId || sheetOpen) return;
+    const t = setTimeout(() => {
+      const el = document.querySelector(`[data-pin-id="${focusId}"]`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      setFocusId(null);
+    }, 150);
+    return () => clearTimeout(t);
+  }, [focusId, sheetOpen, items, tab]);
 
   const showToast = (msg) => { setToastMsg(msg); setToastKey((k) => k + 1); };
 
@@ -1829,7 +2011,10 @@ function Wishboard({ userId, userEmail }) {
   };
 
   const handleAdd = async (item) => {
-    await addItem(item);
+    const added = await addItem(item);
+    // Show the tab the pin landed in, and bring the new pin to the center of the screen.
+    setTab(item.custom_tab_id || item.status);
+    if (added && added.id) setFocusId(added.id);
     // Sparkle celebration only for brand-new pins landing on Wishlist — no text, ever.
     if (item.status === "wishlist" && !item.custom_tab_id) {
       setSparkleKey((k) => k + 1);
