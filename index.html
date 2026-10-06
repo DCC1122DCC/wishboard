@@ -583,6 +583,18 @@
   .wb-intro-actions { display: flex; gap: 8px; }
   .wb-intro-actions .wb-save-btn { margin-top: 0; padding: 10px; font-size: 13px; }
   .wb-intro-actions .wb-cancel-btn { padding: 10px; font-size: 13px; }
+
+  /* ===== Update: centered sheet, Post-it pins, square crop ===== */
+  .wb-overlay { align-items: center; padding: 16px; overscroll-behavior: contain; }
+  .wb-detail-overlay { padding: 0; }
+  .wb-sheet { border-radius: var(--radius-sheet); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); }
+  .wb-postit { width: 100%; aspect-ratio: 1 / 1; background: #FFE98A; display: flex; align-items: center; justify-content: center;
+    padding: 18px; text-align: center; font-family: var(--font-display); font-size: 18px; line-height: 1.25; color: #3a2f10;
+    overflow-wrap: anywhere; box-shadow: inset 0 -14px 18px -14px rgba(120,90,0,.35); }
+  .wb-detail-img-wrap .wb-postit { aspect-ratio: auto; height: 220px; }
+  .wb-cropper-wrap { height: 300px; max-height: none; }
+  .cropper-view-box { outline: 2px solid rgba(255,255,255,.95); }
+  .cropper-face { background: transparent; }
 </style>
 </head>
 <body>
@@ -1161,7 +1173,7 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme, onDropTo, onDragState
         {item.image && !imgError ? (
           <img src={item.image} alt={item.title} onError={() => setImgError(true)} />
         ) : (
-          <div className="wb-placeholder"><span>{initial}</span></div>
+          <div className="wb-postit"><span>{item.title}</span></div>
         )}
         <PriceTag value={item.price} />
       </div>
@@ -1252,8 +1264,6 @@ function EditPinFields({ item, onChange, tabs, target, onTarget }) {
     if (fileRef.current) fileRef.current.value = "";
   };
 
-  const isDataImage = (item.image || "").startsWith("data:");
-
   return (
     <>
       <div className="wb-field">
@@ -1268,14 +1278,6 @@ function EditPinFields({ item, onChange, tabs, target, onTarget }) {
         </button>
         {uploadError ? <p className="wb-auth-error" style={{ marginTop: 6, marginBottom: 0 }}>{uploadError}</p> : null}
         {item.image ? <img className="wb-preview" src={item.image} alt="Preview" /> : null}
-        <p className="wb-link-hint">Or paste an image link:</p>
-        <input
-          type="text"
-          placeholder="https://example.com/photo.jpg"
-          value={isDataImage ? "" : (item.image || "")}
-          onChange={(e) => onChange({ image: e.target.value })}
-          style={{ marginTop: 6 }}
-        />
       </div>
       <div className="wb-field">
         <label>Notes</label>
@@ -1411,7 +1413,7 @@ function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustom
           {item.image ? (
             <img src={item.image} alt={item.title} />
           ) : (
-            <div className="wb-placeholder"><span>{initial}</span></div>
+            <div className="wb-postit"><span>{item.title}</span></div>
           )}
         </div>
         <div className="wb-detail-body">
@@ -1473,6 +1475,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [restoredDraft, setRestoredDraft] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
 
   // --- link auto-fill state ---
   const [fetchingLink, setFetchingLink] = useState(false);
@@ -1483,7 +1486,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
   const cropperImgRef = useRef(null);
   const cropperRef = useRef(null); // holds the live Cropper instance
 
-  // --- swipe-down-to-dismiss (also saves a draft) ---
+  // --- swipe-down-to-dismiss ---
   const [dragY, setDragY] = useState(0);
   const dragStartRef = useRef(null);
 
@@ -1500,6 +1503,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
     setTitle(""); setPrice(""); setLink(""); setNotes(""); setSaveError("");
     setLinkFetchError(""); setFetchingLink(false); setRestoredDraft(false);
     setPinTarget("wishlist");
+    setConfirmClose(false);
     destroyCropper();
     setRawImage("");
     if (fileRef.current) fileRef.current.value = "";
@@ -1571,14 +1575,14 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
     destroyCropper();
     if (cropperImgRef.current && window.Cropper) {
       cropperRef.current = new window.Cropper(cropperImgRef.current, {
-        aspectRatio: NaN, // freeform — no forced aspect ratio
+        aspectRatio: 1,
         viewMode: 1, // crop box is clamped inside the photo's own bounds
-        dragMode: "move", // phone-style: drag moves the existing box, resize via its own edge/corner handles
-        autoCropArea: 0.9,
+        dragMode: "move", // drag moves the photo under the fixed square frame
+        autoCropArea: 1, toggleDragModeOnDblclick: false,
         background: false,
         responsive: true,
-        cropBoxMovable: true,
-        cropBoxResizable: true,
+        cropBoxMovable: false,
+        cropBoxResizable: false,
       });
     }
   };
@@ -1617,10 +1621,10 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
       if (meta.image) { setImgMode("url"); setImageUrl(meta.image); }
       if (meta.price) setPrice(meta.price);
       if (!meta.title && !meta.image && !meta.price) {
-        setLinkFetchError("Found the page, but no usable details on it — fill these in yourself.");
+        setLinkFetchError("Couldn\u2019t auto-fill link, upload photo instead!");
       }
     } catch (err) {
-      setLinkFetchError("Couldn't auto-fill from that link — the site may block this, or check the URL.");
+      setLinkFetchError("Couldn\u2019t auto-fill link, upload photo instead!");
     } finally {
       setFetchingLink(false);
     }
@@ -1635,25 +1639,15 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
 
   const canSave = title.trim().length > 0 && !saving;
 
+  // X / tap-outside / swipe-down: nothing entered → just close; otherwise
+  // ask whether to Save to Drafts or Discard (never silently discards).
+  const closeNow = () => { reset(); onClose(); };
   const requestClose = () => {
-    saveDraft();
-    reset();
-    onClose();
+    if (!hasUnsavedInput()) { clearDraft(); closeNow(); return; }
+    setConfirmClose(true);
   };
-
-  const handleCancel = () => {
-    if (!hasUnsavedInput()) {
-      clearDraft();
-      reset();
-      onClose();
-      return;
-    }
-    if (window.confirm("Discard this pin? This can't be undone.")) {
-      clearDraft();
-      reset();
-      onClose();
-    }
-  };
+  const saveToDrafts = () => { saveDraft(); closeNow(); };
+  const discardPin = () => { clearDraft(); closeNow(); };
 
   const isBuiltInTarget = pinTarget === "wishlist" || pinTarget === "purchased" || pinTarget === "transcended";
 
@@ -1689,7 +1683,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
     if (delta > 0) setDragY(delta);
   };
   const onHandleTouchEnd = () => {
-    if (dragY > 80) { requestClose(); return; }
+    if (dragY > 80) { setDragY(0); dragStartRef.current = null; requestClose(); return; }
     setDragY(0);
     dragStartRef.current = null;
   };
@@ -1706,6 +1700,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
     <div className="wb-overlay" onClick={requestClose}>
       <div
         className="wb-sheet"
+        onFocus={(e) => { const t = e.target; if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) setTimeout(() => { try { t.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (_) {} }, 300); }}
         onClick={(e) => e.stopPropagation()}
         style={{
           transform: dragY ? `translateY(${dragY}px)` : undefined,
@@ -1720,11 +1715,12 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
         />
         <button className="wb-close-x" onClick={requestClose} aria-label="Close"><XIcon size={20} /></button>
         <h2>Pin something new</h2>
+        <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFile} />
         {restoredDraft ? <p className="wb-draft-hint">Continuing your last unfinished pin.</p> : null}
 
         {mode === null ? (
           <>
-            <button type="button" className="wb-choose-opt" onClick={() => { setMode("photo"); setImgMode("upload"); }}>
+            <button type="button" className="wb-choose-opt" onClick={() => { setMode("photo"); setImgMode("upload"); if (fileRef.current) fileRef.current.click(); }}>
               <UploadIcon size={20} />
               <span>Upload Photo<small>Add a picture, then give it a name</small></span>
             </button>
@@ -1736,9 +1732,6 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
               <LinkIcon size={20} />
               <span>Quick Link<small>Paste a product link and auto-fill the details</small></span>
             </button>
-            <div className="wb-sheet-actions" style={{ marginTop: 8 }}>
-              <button type="button" className="wb-cancel-btn" onClick={handleCancel}>Cancel</button>
-            </div>
           </>
         ) : (
           <>
@@ -1795,13 +1788,17 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
         ) : null}
 
         <div className="wb-field">
-          <label>Photo</label>
+          <label>Photo{mode === "photo" ? "" : " (optional)"}</label>
           {rawImage ? (
             <>
               <div className="wb-cropper-wrap">
                 <img ref={cropperImgRef} src={rawImage} onLoad={handleCropperImgLoad} alt="Crop preview" />
               </div>
-              <p className="wb-crop-hint">Drag the crop box's own edges/corners to resize — the box stays within the photo.</p>
+              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                <button type="button" className="wb-cancel-btn" style={{ padding: 8 }} onClick={() => cropperRef.current && cropperRef.current.zoom(-0.1)}>&minus; Zoom out</button>
+                <button type="button" className="wb-cancel-btn" style={{ padding: 8 }} onClick={() => cropperRef.current && cropperRef.current.zoom(0.1)}>+ Zoom in</button>
+              </div>
+              <p className="wb-crop-hint">Drag the photo to reposition it. The square is what gets saved.</p>
               <div className="wb-cropper-actions">
                 <button type="button" className="wb-cropper-cancel" onClick={cancelCrop}>Cancel</button>
                 <button type="button" className="wb-save-btn" onClick={applyCrop}>Use this crop</button>
@@ -1809,20 +1806,9 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
             </>
           ) : (
             <>
-              <div className="wb-imgmode">
-                <button className={imgMode === "upload" ? "active" : ""} onClick={() => setImgMode("upload")} type="button">
-                  <UploadIcon size={13} style={{ marginRight: 5, verticalAlign: -2 }} /> Upload photo
-                </button>
-                <button className={imgMode === "url" ? "active" : ""} onClick={() => setImgMode("url")} type="button">
-                  <LinkIcon size={13} style={{ marginRight: 5, verticalAlign: -2 }} /> Paste image link
-                </button>
-              </div>
-              {imgMode === "url" ? (
-                <input type="text" placeholder="https://example.com/photo.jpg" value={imageUrl}
-                       onChange={(e) => setImageUrl(e.target.value)} />
-              ) : (
-                <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} />
-              )}
+              <button type="button" className="wb-photo-btn" onClick={() => fileRef.current && fileRef.current.click()}>
+                <UploadIcon size={14} /> {preview ? "Replace photo" : "Choose photo"}
+              </button>
               {preview ? (
                 <div style={{ position: "relative", display: "inline-block", marginTop: 8 }}>
                   <img className="wb-preview" src={preview} alt="Preview" style={{ marginTop: 0 }} />
@@ -1867,15 +1853,26 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
         </div>
 
         <div className="wb-sheet-actions">
-          <button type="button" className="wb-cancel-btn" onClick={handleCancel}>Cancel</button>
           <button className="wb-save-btn" disabled={!canSave} onClick={handleSave}>
-            <PlusIcon size={16} style={{ verticalAlign: -3, marginRight: 4 }} /> {saving ? "Saving…" : `Add to ${targetLabel}`}
+            <PlusIcon size={16} style={{ verticalAlign: -3, marginRight: 4 }} /> {saving ? "Saving…" : "Add to List"}
           </button>
         </div>
         {saveError ? <p className="wb-auth-error" style={{ marginTop: 10, marginBottom: 0 }}>{saveError}</p> : null}
           </>
         )}
       </div>
+      {confirmClose ? (
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(30,26,22,.5)", padding: 16 }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ background: "var(--paper)", borderRadius: "var(--radius-sheet)", padding: 20, width: "100%", maxWidth: 340 }}>
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: 20, margin: "0 0 6px" }}>Leave this pin?</h2>
+            <p className="wb-link-hint" style={{ margin: "0 0 14px" }}>Save it to drafts to finish later, or discard it.</p>
+            <div className="wb-sheet-actions">
+              <button type="button" className="wb-cancel-btn" onClick={discardPin}>Discard</button>
+              <button type="button" className="wb-save-btn" onClick={saveToDrafts}>Save to Drafts</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -2093,11 +2090,14 @@ function Wishboard({ userId, userEmail, introSeen }) {
     if (withTour) setHelpOpen(true);
   };
 
-  // lock background scroll while a sheet/modal is open
+  // lock background while a sheet/modal is open: freeze the page at its current
+  // scroll position so the Wishboard behind never slides or jumps.
   useEffect(() => {
     const active = sheetOpen || Boolean(openItemId);
-    document.body.style.overflow = active ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    if (!active) return;
+    const y = window.scrollY, b = document.body;
+    b.style.position = "fixed"; b.style.top = `-${y}px`; b.style.width = "100%";
+    return () => { b.style.position = ""; b.style.top = ""; b.style.width = ""; window.scrollTo(0, y); };
   }, [sheetOpen, openItemId]);
 
   const showToast = (msg) => { setToastMsg(msg); setToastKey((k) => k + 1); };
@@ -2210,7 +2210,7 @@ function Wishboard({ userId, userEmail, introSeen }) {
   const emptyText = items.length === 0
     ? EMPTY_ALL_PINS
     : isBuiltIn
-      ? (tab === "wishlist" ? "Nothing pinned yet. Tap the + to add the first thing you're eyeing."
+      ? (tab === "wishlist" ? "Nothing pinned yet. Tap the + to add the first thing you\u2019re eyeing."
          : tab === "purchased" ? "Nothing spent yet."
          : "Nothing released yet.")
       : "Nothing here yet.";
