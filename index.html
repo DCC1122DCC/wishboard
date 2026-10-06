@@ -539,6 +539,50 @@
     .wb-root[data-theme="absurdist"] .wb-title { font-size: 26px; }
     .wb-root[data-theme="surreal"] .wb-title { font-size: 34px; }
   }
+
+  /* ================= NEW (this update) ================= */
+  /* Add Pin: labeled pill, clearly different from the dashed "New tab" control */
+  .wb-fab.wb-fab-pill { width: auto; height: 52px; padding: 0 22px 0 16px; border-radius: 999px; gap: 8px; font-family: var(--font-body); font-weight: 700; font-size: 14.5px; }
+  /* New tab: labeled, dashed, small */
+  .wb-tab-add { gap: 5px; font-size: 12.5px; font-weight: 600; font-family: var(--font-body); }
+  /* New-pin chooser */
+  .wb-choose-opt {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px; margin-bottom: 8px; text-align: left;
+    border: 1px solid var(--line); background: #fff; border-radius: var(--radius-btn); cursor: pointer;
+    font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--ink);
+  }
+  .wb-choose-opt small { display: block; font-weight: 400; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .wb-choose-opt:first-of-type { border-color: var(--plum); }
+  /* Drag feedback */
+  .wb-card.wb-card-dragging { opacity: .45; transform: scale(.97); }
+  .wb-tab.wb-tab-droptarget { outline: 1px dashed var(--muted); outline-offset: -3px; }
+  .wb-drag-ghost { position: fixed; z-index: 80; pointer-events: none; width: 110px; opacity: .85; transform: translate(-50%, -50%) rotate(-3deg); box-shadow: 0 10px 24px rgba(0,0,0,.3); border-radius: var(--radius-card); overflow: hidden; background: var(--card); }
+  .wb-drag-ghost img { width: 100%; display: block; }
+  /* Password eye */
+  .wb-pw-wrap { position: relative; }
+  .wb-pw-wrap input { padding-right: 42px; }
+  .wb-pw-eye { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; display: flex; padding: 4px; }
+  /* Edit-mode extras */
+  .wb-photo-btn { width: 100%; padding: 11px; border-radius: var(--radius-btn); border: 1px solid var(--plum); background: #fff; color: var(--plum); font-weight: 700; font-size: 13px; cursor: pointer; font-family: var(--font-body); display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .wb-detail-actions { display: flex; gap: 8px; margin-top: 6px; }
+  .wb-detail-actions button { flex: 1; margin-top: 0; }
+  .wb-detail-actions .wb-detail-edit-btn { justify-content: center; padding: 12px; font-size: 13.5px; color: var(--ink); border-color: var(--ink); border-radius: var(--radius-btn); }
+  /* Help + intro (non-blocking: layers never intercept clicks) */
+  .wb-help-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--muted); font-weight: 700; font-size: 15px; cursor: pointer; font-family: var(--font-body); display: flex; align-items: center; justify-content: center; }
+  .wb-help-btn.active { background: var(--ink); color: var(--paper); }
+  .wb-help-layer { position: fixed; inset: 0; z-index: 35; pointer-events: none; }
+  .wb-help-ring { position: absolute; border: 2px solid var(--gold); border-radius: 10px; box-shadow: 0 0 0 3px rgba(255,255,255,.55); }
+  .wb-help-tip { position: absolute; max-width: 190px; padding: 7px 10px; border-radius: 8px; background: var(--ink); color: var(--paper); font-family: var(--font-body); font-size: 12px; font-weight: 600; line-height: 1.35; box-shadow: 0 6px 16px rgba(0,0,0,.25); }
+  .wb-help-tip::after { content: ""; position: absolute; width: 9px; height: 9px; background: var(--ink); transform: rotate(45deg); left: var(--ax, 50%); margin-left: -4px; }
+  .wb-help-tip.arrow-up::after { top: -4px; }
+  .wb-help-tip.arrow-down::after { bottom: -4px; }
+  .wb-help-tip.no-arrow::after { display: none; }
+  .wb-intro { position: fixed; left: 50%; top: 84px; transform: translateX(-50%); width: min(340px, calc(100% - 32px)); z-index: 45; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius-sheet); box-shadow: 0 14px 34px rgba(0,0,0,.28); padding: 18px 18px 14px; font-family: var(--font-body); }
+  .wb-intro h3 { font-family: var(--font-display); font-size: 18px; margin: 0 0 8px; }
+  .wb-intro ul { margin: 0 0 12px; padding-left: 18px; font-size: 12.5px; line-height: 1.6; }
+  .wb-intro-actions { display: flex; gap: 8px; }
+  .wb-intro-actions .wb-save-btn { margin-top: 0; padding: 10px; font-size: 13px; }
+  .wb-intro-actions .wb-cancel-btn { padding: 10px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -685,6 +729,9 @@ const LotusIcon = (p) => (
   </Icon>
 );
 const PaletteIcon = (p) => <Icon d="M12 2a10 10 0 100 20c1.4 0 2.1-.7 2.1-1.8 0-.5-.2-.9-.4-1.3-.2-.4-.4-.8-.4-1.2 0-.8.6-1.4 1.4-1.4h1.6a3.3 3.3 0 003.3-3.3C19.6 6.6 16.2 2 12 2z" {...p}><circle cx="7" cy="12" r="1.4" fill="currentColor" stroke="none" /><circle cx="9.5" cy="8" r="1.4" fill="currentColor" stroke="none" /><circle cx="14.5" cy="8" r="1.4" fill="currentColor" stroke="none" /></Icon>;
+// NEW: show/hide password icons
+const EyeIcon = (p) => <Icon {...p}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" /><circle cx="12" cy="12" r="3" /></Icon>;
+const EyeOffIcon = (p) => <Icon {...p}><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M14.12 14.12a3 3 0 11-4.24-4.24M1 1l22 22" /></Icon>;
 
 // ---- Logo ----
 const LOGO_SRC = "icons/plswork.png";
@@ -726,8 +773,8 @@ function ThemeSwitcher({ theme, onChange }) {
   }, []);
 
   return (
-    <div className="wb-theme-switcher" ref={ref}>
-      <button className="wb-theme-btn" onClick={() => setOpen((o) => !o)} type="button" aria-label="Change theme">
+    <div className="wb-theme-switcher" ref={ref} data-help="theme">
+      <button className="wb-theme-btn" onClick={() => setOpen((o) => !o)} type="button" aria-label="Change appearance" title="Change appearance">
         <PaletteIcon size={16} />
       </button>
       {open ? (
@@ -971,9 +1018,15 @@ function PriceTag({ value }) {
   return <div className="wb-price-tag">{currency(value)}</div>;
 }
 
-function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
+function ItemCard({ item, onMove, onDelete, onOpen, theme, onDropTo, onDragState, onDragHover, helpTarget }) {
   const [imgError, setImgError] = useState(false);
   const [transcending, setTranscending] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [ghost, setGhost] = useState(null); // finger position while touch-dragging
+  const cardRef = useRef(null);
+  const touchRef = useRef({ timer: null, active: false, startX: 0, startY: 0 });
+  const cb = useRef({});
+  cb.current = { onDropTo, onDragState, onDragHover };
   const initial = (item.title || "?").trim().charAt(0).toUpperCase();
 
   const handleDelete = (e) => {
@@ -983,11 +1036,90 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
     }
   };
 
-  // Drag source for tab-header drop targets (see wb-tabs in Wishboard).
+  // Mouse drag source for tab-header drop targets (see wb-tabs in Wishboard).
   const handleDragStart = (e) => {
     e.dataTransfer.setData("text/plain", item.id);
     e.dataTransfer.effectAllowed = "move";
+    setTimeout(() => setDragging(true), 0); // deferred so the drag image isn't faded
+    if (cb.current.onDragState) cb.current.onDragState(true);
   };
+  const handleDragEnd = () => {
+    setDragging(false);
+    if (cb.current.onDragState) cb.current.onDragState(false);
+    if (cb.current.onDragHover) cb.current.onDragHover(null);
+  };
+
+  // Touch drag: press and hold the pin, then drag it onto a tab. A quick tap
+  // still opens the pin and a normal swipe still scrolls the page.
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const t = touchRef.current;
+    const dropIdAt = (x, y) => {
+      const hit = document.elementFromPoint(x, y);
+      const target = hit && hit.closest ? hit.closest("[data-dropid]") : null;
+      return target ? target.getAttribute("data-dropid") : null;
+    };
+    const finish = () => {
+      if (t.timer) clearTimeout(t.timer);
+      t.timer = null;
+      t.active = false;
+      setGhost(null);
+      setDragging(false);
+      if (cb.current.onDragHover) cb.current.onDragHover(null);
+      if (cb.current.onDragState) cb.current.onDragState(false);
+    };
+    const onStart = (e) => {
+      if (e.touches.length !== 1) return;
+      const p = e.touches[0];
+      t.startX = p.clientX;
+      t.startY = p.clientY;
+      t.active = false;
+      if (t.timer) clearTimeout(t.timer);
+      t.timer = setTimeout(() => {
+        t.active = true;
+        setDragging(true);
+        setGhost({ x: t.startX, y: t.startY });
+        if (cb.current.onDragState) cb.current.onDragState(true);
+        try { if (navigator.vibrate) navigator.vibrate(15); } catch (_) { /* ignore */ }
+      }, 380);
+    };
+    const onMoveT = (e) => {
+      const p = e.touches[0];
+      if (!t.active) {
+        // finger moved before the long-press fired: it's a scroll, not a drag
+        if (Math.abs(p.clientX - t.startX) > 8 || Math.abs(p.clientY - t.startY) > 8) {
+          if (t.timer) clearTimeout(t.timer);
+          t.timer = null;
+        }
+        return;
+      }
+      e.preventDefault();
+      setGhost({ x: p.clientX, y: p.clientY });
+      if (cb.current.onDragHover) cb.current.onDragHover(dropIdAt(p.clientX, p.clientY));
+    };
+    const onEnd = (e) => {
+      if (t.timer) clearTimeout(t.timer);
+      t.timer = null;
+      if (!t.active) return;
+      e.preventDefault(); // swallow the click the browser would synthesize
+      const p = e.changedTouches[0];
+      const dropId = dropIdAt(p.clientX, p.clientY);
+      finish();
+      if (dropId && cb.current.onDropTo) cb.current.onDropTo(item.id, dropId);
+    };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMoveT, { passive: false });
+    el.addEventListener("touchend", onEnd, { passive: false });
+    el.addEventListener("touchcancel", finish, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMoveT);
+      el.removeEventListener("touchend", onEnd);
+      el.removeEventListener("touchcancel", finish);
+      if (t.timer) clearTimeout(t.timer);
+    };
+  }, [item.id]);
 
   // On Dali, the pin visibly melts/glides toward the Transcended tab before the
   // real move happens. The state update always fires on its own timer — the
@@ -1009,9 +1141,13 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
 
   return (
     <div
-      className={`wb-card ${transcending ? "wb-card-transcending" : ""}`}
+      ref={cardRef}
+      data-help={helpTarget ? "pin" : undefined}
+      className={`wb-card ${transcending ? "wb-card-transcending" : ""} ${dragging ? "wb-card-dragging" : ""}`}
       draggable="true"
       onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onContextMenu={(e) => { if (touchRef.current.active) e.preventDefault(); }}
     >
       <button
         className={`wb-delete ${isQuietDelete ? "wb-delete-quiet" : ""}`}
@@ -1055,18 +1191,100 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme }) {
           )}
         </div>
       </div>
+      {ghost
+        ? ReactDOM.createPortal(
+            <div className="wb-drag-ghost" style={{ left: ghost.x, top: ghost.y }}>
+              {item.image && !imgError ? (
+                <img src={item.image} alt="" />
+              ) : (
+                <div className="wb-placeholder" style={{ aspectRatio: "1 / 1" }}><span>{initial}</span></div>
+              )}
+            </div>,
+            (cardRef.current && cardRef.current.closest(".wb-root")) || document.body
+          )
+        : null}
     </div>
   );
 }
 
-function EditPinFields({ item, onChange }) {
+// Reads a chosen photo, scales it down (max 1200px) and returns a JPEG data URL.
+// Pins already store their photo as a data URL in the `image` column, so this
+// reuses the existing storage — no new service or table needed.
+function readImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("read"));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("decode"));
+      img.onload = () => {
+        const scale = Math.min(1, 1200 / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(img.width * scale));
+        c.height = Math.max(1, Math.round(img.height * scale));
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function EditPinFields({ item, onChange, tabs, target, onTarget }) {
   // Inline edit form used inside the pin detail sheet — reuses the same
   // field set as pin creation, but patches the existing record.
+  const fileRef = useRef(null);
+  const [uploadError, setUploadError] = useState("");
+
+  const handleFile = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setUploadError("");
+    try {
+      onChange({ image: await readImageFile(file) });
+    } catch {
+      setUploadError("Couldn't read that photo — try a different one.");
+    }
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const isDataImage = (item.image || "").startsWith("data:");
+
   return (
     <>
       <div className="wb-field">
         <label>What is it?</label>
         <input type="text" value={item.title || ""} onChange={(e) => onChange({ title: e.target.value })} />
+      </div>
+      <div className="wb-field">
+        <label>Photo</label>
+        <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFile} />
+        <button type="button" className="wb-photo-btn" onClick={() => fileRef.current && fileRef.current.click()}>
+          <UploadIcon size={14} /> {item.image ? "Replace photo" : "Upload photo"}
+        </button>
+        {uploadError ? <p className="wb-auth-error" style={{ marginTop: 6, marginBottom: 0 }}>{uploadError}</p> : null}
+        {item.image ? <img className="wb-preview" src={item.image} alt="Preview" /> : null}
+        <p className="wb-link-hint">Or paste an image link:</p>
+        <input
+          type="text"
+          placeholder="https://example.com/photo.jpg"
+          value={isDataImage ? "" : (item.image || "")}
+          onChange={(e) => onChange({ image: e.target.value })}
+          style={{ marginTop: 6 }}
+        />
+      </div>
+      <div className="wb-field">
+        <label>Notes</label>
+        <textarea
+          value={item.notes || ""}
+          onChange={(e) => onChange({ notes: e.target.value })}
+          placeholder="Add a note about this pin…"
+          rows={3}
+        />
       </div>
       <div className="wb-field">
         <label>Price</label>
@@ -1081,26 +1299,35 @@ function EditPinFields({ item, onChange }) {
         <input type="text" value={item.link || ""} onChange={(e) => onChange({ link: e.target.value })} />
       </div>
       <div className="wb-field">
-        <label>Image URL</label>
-        <input type="text" value={item.image || ""} onChange={(e) => onChange({ image: e.target.value })} />
+        <label>Move to</label>
+        <div className="wb-detail-tabs">
+          <button type="button" className={target === "wishlist" ? "active" : ""} onClick={() => onTarget("wishlist")}>Wishlist</button>
+          <button type="button" className={target === "purchased" ? "active" : ""} onClick={() => onTarget("purchased")}>Purchased</button>
+          <button type="button" className={target === "transcended" ? "active" : ""} onClick={() => onTarget("transcended")}>Transcended</button>
+          {tabs.map((t) => (
+            <button type="button" key={t.id} className={target === t.id ? "active" : ""} onClick={() => onTarget(t.id)}>
+              {t.name}
+            </button>
+          ))}
+        </div>
       </div>
     </>
   );
 }
 
 function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustomTab, onDelete, onSaveNotes, onSaveEdits }) {
-  const [notes, setNotes] = useState(item.notes || "");
-  const [savingNotes, setSavingNotes] = useState(false);
   const [dragY, setDragY] = useState(0);
   const dragStartRef = useRef(null);
   const [editing, setEditing] = useState(false);
   const [draftItem, setDraftItem] = useState(item);
+  const currentTarget = item.custom_tab_id || item.status;
+  const [target, setTarget] = useState(currentTarget);
   const [savingEdits, setSavingEdits] = useState(false);
   const [closing, setClosing] = useState(false);
 
   useEffect(() => {
-    setNotes(item.notes || "");
     setDraftItem(item);
+    setTarget(item.custom_tab_id || item.status);
   }, [item.id]);
 
   // On Dali, play a brief controlled warp before unmounting rather than an
@@ -1114,13 +1341,6 @@ function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustom
     }
   };
 
-  const handleNotesBlur = async () => {
-    if (notes === (item.notes || "")) return;
-    setSavingNotes(true);
-    await onSaveNotes(item.id, notes);
-    setSavingNotes(false);
-  };
-
   const handleDelete = () => {
     if (window.confirm(`Delete "${item.title}"? This can't be undone.`)) {
       onDelete(item.id);
@@ -1128,8 +1348,8 @@ function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustom
     }
   };
 
-  const startEditing = () => { setDraftItem(item); setEditing(true); };
-  const cancelEditing = () => { setDraftItem(item); setEditing(false); };
+  const startEditing = () => { setDraftItem(item); setTarget(currentTarget); setEditing(true); };
+  const cancelEditing = () => { setDraftItem(item); setTarget(currentTarget); setEditing(false); };
   const saveEditing = async () => {
     setSavingEdits(true);
     try {
@@ -1138,15 +1358,24 @@ function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustom
         price: parseFloat(draftItem.price) || 0,
         link: (draftItem.link || "").trim(),
         image: (draftItem.image || "").trim(),
+        notes: (draftItem.notes || "").trim(),
       });
+      if (target !== currentTarget) {
+        if (target === "wishlist" || target === "purchased" || target === "transcended") {
+          await onMoveStatus(item.id, target);
+        } else {
+          await onMoveCustomTab(item.id, target);
+        }
+      }
       setEditing(false);
     } finally {
       setSavingEdits(false);
     }
   };
 
-  // swipe-down-to-dismiss, scoped to the image area so notes/tabs stay scrollable
-  const onImgTouchStart = (e) => { dragStartRef.current = e.touches[0].clientY; };
+  // swipe-down-to-dismiss, scoped to the image area so notes/tabs stay scrollable.
+  // Disabled while editing so a stray swipe can't throw away unsaved changes.
+  const onImgTouchStart = (e) => { if (editing) return; dragStartRef.current = e.touches[0].clientY; };
   const onImgTouchMove = (e) => {
     if (dragStartRef.current == null) return;
     const delta = e.touches[0].clientY - dragStartRef.current;
@@ -1162,7 +1391,7 @@ function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustom
   const daliAnimClass = theme === "surreal" ? (closing ? "wb-dali-anim-out" : "wb-dali-anim-in") : "";
 
   return (
-    <div className="wb-overlay wb-detail-overlay" onClick={requestClose}>
+    <div className="wb-overlay wb-detail-overlay" onClick={editing ? undefined : requestClose}>
       <div
         className={`wb-detail-sheet ${daliAnimClass}`}
         onClick={(e) => e.stopPropagation()}
@@ -1188,77 +1417,40 @@ function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustom
         <div className="wb-detail-body">
           {editing ? (
             <>
-              <EditPinFields item={draftItem} onChange={(patch) => setDraftItem((d) => ({ ...d, ...patch }))} />
+              <EditPinFields
+                item={draftItem}
+                onChange={(patch) => setDraftItem((d) => ({ ...d, ...patch }))}
+                tabs={tabs}
+                target={target}
+                onTarget={setTarget}
+              />
               <div className="wb-sheet-actions">
                 <button className="wb-cancel-btn" onClick={cancelEditing} type="button">Cancel</button>
                 <button className="wb-save-btn" onClick={saveEditing} disabled={savingEdits || !(draftItem.title || "").trim()}>
-                  {savingEdits ? "Saving…" : "Save changes"}
+                  {savingEdits ? "Saving…" : "Save Changes"}
                 </button>
               </div>
             </>
           ) : (
             <>
-              <div className="wb-detail-title-row">
-                <h2 className="wb-detail-title">{item.title}</h2>
-                <button className="wb-detail-edit-btn" onClick={startEditing} type="button">
-                  <EditIcon size={13} /> Edit
-                </button>
-              </div>
+              <h2 className="wb-detail-title">{item.title}</h2>
               <p className="wb-detail-price">{currency(item.price)}</p>
               {item.link ? (
                 <a className="wb-item-source" href={item.link} target="_blank" rel="noreferrer" style={{ marginBottom: 16 }}>
                   {hostnameOf(item.link) || "view item"}
                 </a>
               ) : null}
-
-              <div className="wb-field">
-                <label>Notes</label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  onBlur={handleNotesBlur}
-                  placeholder="Add a note about this pin…"
-                  rows={3}
-                />
-                {savingNotes ? <p className="wb-link-hint">Saving…</p> : null}
+              {item.notes ? (
+                <p style={{ fontSize: 14, lineHeight: 1.5, margin: "0 0 16px", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{item.notes}</p>
+              ) : null}
+              <div className="wb-detail-actions">
+                <button className="wb-detail-edit-btn" onClick={startEditing} type="button">
+                  <EditIcon size={14} /> Edit Pin
+                </button>
+                <button className="wb-detail-delete" onClick={handleDelete} type="button">
+                  <TrashIcon size={14} /> Delete Pin
+                </button>
               </div>
-
-              <div className="wb-field">
-                <label>Move to</label>
-                <div className="wb-detail-tabs">
-                  <button
-                    className={item.status === "wishlist" && !item.custom_tab_id ? "active" : ""}
-                    onClick={() => onMoveStatus(item.id, "wishlist")}
-                  >
-                    Wishlist
-                  </button>
-                  <button
-                    className={item.status === "purchased" && !item.custom_tab_id ? "active" : ""}
-                    onClick={() => onMoveStatus(item.id, "purchased")}
-                  >
-                    Purchased
-                  </button>
-                  <button
-                    className={item.status === "transcended" && !item.custom_tab_id ? "active" : ""}
-                    onClick={() => onMoveStatus(item.id, "transcended")}
-                  >
-                    Transcended
-                  </button>
-                  {tabs.map((t) => (
-                    <button
-                      key={t.id}
-                      className={item.custom_tab_id === t.id ? "active" : ""}
-                      onClick={() => onMoveCustomTab(item.id, t.id)}
-                    >
-                      {t.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button className="wb-detail-delete" onClick={handleDelete}>
-                <TrashIcon size={14} /> Delete pin
-              </button>
             </>
           )}
         </div>
@@ -1268,6 +1460,7 @@ function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustom
 }
 
 function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
+  const [mode, setMode] = useState(null); // null = choose a type first | "photo" | "note" | "link"
   const [imgMode, setImgMode] = useState("upload");
   const [imageUrl, setImageUrl] = useState("");
   const [uploadedImage, setUploadedImage] = useState("");
@@ -1302,6 +1495,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
   };
 
   const reset = () => {
+    setMode(null);
     setImgMode("upload"); setImageUrl(""); setUploadedImage("");
     setTitle(""); setPrice(""); setLink(""); setNotes(""); setSaveError("");
     setLinkFetchError(""); setFetchingLink(false); setRestoredDraft(false);
@@ -1322,7 +1516,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
       }
       localStorage.setItem(
         draftKey,
-        JSON.stringify({ title, price, link, notes, imgMode, imageUrl, uploadedImage, pinTarget })
+        JSON.stringify({ title, price, link, notes, imgMode, imageUrl, uploadedImage, pinTarget, mode })
       );
     } catch {
       // storage can fail (private browsing, quota) — draft loss is non-fatal
@@ -1347,6 +1541,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
           setImageUrl(draft.imageUrl || "");
           setUploadedImage(draft.uploadedImage || "");
           setPinTarget(draft.pinTarget || "wishlist");
+          setMode(draft.mode || (draft.link ? "link" : "photo")); // older drafts have no mode
           setRestoredDraft(true);
         }
       } catch {
@@ -1527,6 +1722,35 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
         <h2>Pin something new</h2>
         {restoredDraft ? <p className="wb-draft-hint">Continuing your last unfinished pin.</p> : null}
 
+        {mode === null ? (
+          <>
+            <button type="button" className="wb-choose-opt" onClick={() => { setMode("photo"); setImgMode("upload"); }}>
+              <UploadIcon size={20} />
+              <span>Upload Photo<small>Add a picture, then give it a name</small></span>
+            </button>
+            <button type="button" className="wb-choose-opt" onClick={() => setMode("note")}>
+              <EditIcon size={20} />
+              <span>Quick Note<small>Jot something down — a photo is optional</small></span>
+            </button>
+            <button type="button" className="wb-choose-opt" onClick={() => setMode("link")}>
+              <LinkIcon size={20} />
+              <span>Quick Link<small>Paste a product link and auto-fill the details</small></span>
+            </button>
+            <div className="wb-sheet-actions" style={{ marginTop: 8 }}>
+              <button type="button" className="wb-cancel-btn" onClick={handleCancel}>Cancel</button>
+            </div>
+          </>
+        ) : (
+          <>
+        <button
+          type="button"
+          className="wb-link-hint"
+          style={{ background: "none", border: "none", padding: 0, margin: "-6px 0 12px", cursor: "pointer", textDecoration: "underline" }}
+          onClick={() => setMode(null)}
+        >
+          Change pin type
+        </button>
+
         <div className="wb-field">
           <label>Pin to</label>
           <div className="wb-detail-tabs">
@@ -1541,6 +1765,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
           </div>
         </div>
 
+        {mode === "link" ? (
         <div className="wb-field">
           <label>Link to the product (optional)</label>
           <div className="wb-link-row">
@@ -1567,6 +1792,7 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
           </p>
           {linkFetchError ? <p className="wb-auth-error" style={{ marginTop: 6 }}>{linkFetchError}</p> : null}
         </div>
+        ) : null}
 
         <div className="wb-field">
           <label>Photo</label>
@@ -1647,6 +1873,8 @@ function AddItemSheet({ open, onClose, onAdd, draftKey, tabs }) {
           </button>
         </div>
         {saveError ? <p className="wb-auth-error" style={{ marginTop: 10, marginBottom: 0 }}>{saveError}</p> : null}
+          </>
+        )}
       </div>
     </div>
   );
@@ -1731,7 +1959,102 @@ function Footer({ theme }) {
   return <div className="wb-footer" />;
 }
 
-function Wishboard({ userId, userEmail }) {
+// ---- Help: small labels + highlight rings pointing at the real controls.
+// The layer never intercepts clicks (pointer-events: none). Clicking anywhere
+// else, pressing Esc, or tapping the ? button again dismisses it.
+function HelpGuide({ onClose }) {
+  const [boxes, setBoxes] = useState([]);
+
+  const compute = useCallback(() => {
+    const defs = [
+      { key: "addpin", text: "Add pin: save something new" },
+      { key: "newtab", text: "New tab: make your own list. You can drop pins onto it." },
+      { key: "theme", text: "Change appearance" },
+      { key: "pin", text: "Tap a pin to open it, then Edit Pin. Drag a pin onto a tab to move it." },
+    ];
+    const out = [];
+    defs.forEach((d) => {
+      const el = document.querySelector(`[data-help="${d.key}"]`);
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.bottom < 0 || r.top > window.innerHeight) return;
+      out.push({ ...d, r: { top: r.top, left: r.left, width: r.width, height: r.height } });
+    });
+    setBoxes(out);
+  }, []);
+
+  useEffect(() => {
+    compute();
+    const onOutside = (e) => {
+      if (e.target && e.target.closest && e.target.closest("[data-help-btn]")) return;
+      onClose();
+    };
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("resize", compute);
+    window.addEventListener("scroll", compute, true);
+    document.addEventListener("mousedown", onOutside);
+    document.addEventListener("touchstart", onOutside, { passive: true });
+    document.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("resize", compute);
+      window.removeEventListener("scroll", compute, true);
+      document.removeEventListener("mousedown", onOutside);
+      document.removeEventListener("touchstart", onOutside);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  return (
+    <div className="wb-help-layer">
+      {boxes.map((b) => {
+        const tall = b.r.height > window.innerHeight * 0.35;
+        const above = b.r.top > window.innerHeight / 2;
+        const left = Math.max(8, Math.min(window.innerWidth - 198, b.r.left + b.r.width / 2 - 95));
+        const pos = tall
+          ? { top: Math.max(b.r.top, 8) + 10 }
+          : above
+            ? { bottom: window.innerHeight - b.r.top + 12 }
+            : { top: b.r.top + b.r.height + 12 };
+        return (
+          <React.Fragment key={b.key}>
+            <div className="wb-help-ring" style={{ top: b.r.top - 4, left: b.r.left - 4, width: b.r.width + 8, height: b.r.height + 8 }} />
+            <div
+              className={`wb-help-tip ${tall ? "no-arrow" : above ? "arrow-down" : "arrow-up"}`}
+              style={{ left, "--ax": `${b.r.left + b.r.width / 2 - left}px`, ...pos }}
+            >
+              {b.text}
+            </div>
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+// ---- First-time introduction: a small card, not a blocking overlay.
+function IntroCard({ onDone, onTour }) {
+  return (
+    <div className="wb-intro" role="dialog" aria-label="Welcome to Wishboard">
+      <h3>Welcome to Wishboard</h3>
+      <ul>
+        <li><b>Add pins:</b> tap Add pin, then choose Upload Photo, Quick Note or Quick Link.</li>
+        <li><b>Create tabs:</b> tap New tab to start your own list.</li>
+        <li><b>Edit pins:</b> open a pin and tap Edit Pin.</li>
+        <li><b>Move pins:</b> drag a pin onto a tab, or use Move To while editing.</li>
+        <li><b>Change the theme:</b> tap the palette icon (Change appearance) near the top right.</li>
+        <li>Tap the ? button any time for a guided tour.</li>
+      </ul>
+      <div className="wb-intro-actions">
+        <button className="wb-cancel-btn" onClick={onTour} type="button">Show me around</button>
+        <button className="wb-save-btn" onClick={onDone} type="button">Got it</button>
+      </div>
+    </div>
+  );
+}
+
+const EMPTY_ALL_PINS = "Nothing pinned yet. Tap the + to add the first thing you\u2019re eyeing.";
+
+function Wishboard({ userId, userEmail, introSeen }) {
   const { items, addItem, deleteItem, moveItem, updateItem, loaded } = useWishboardData(userId);
   const { tabs: customTabs, addTab, deleteTab } = useCustomTabs(userId);
   const [tab, setTab] = useState("wishlist");
@@ -1742,6 +2065,12 @@ function Wishboard({ userId, userEmail }) {
   const [sparkleKey, setSparkleKey] = useState(0);
   const [showSparkle, setShowSparkle] = useState(false);
   const [dragOverTab, setDragOverTab] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [introOpen, setIntroOpen] = useState(() => {
+    if (introSeen) return false;
+    try { return !localStorage.getItem(`wb-intro-seen:${userId}`); } catch { return true; }
+  });
   const [theme, setThemeState] = useState(() => {
     try {
       const saved = localStorage.getItem("wb-theme");
@@ -1753,6 +2082,15 @@ function Wishboard({ userId, userEmail }) {
   const setTheme = (t) => {
     setThemeState(t);
     try { localStorage.setItem("wb-theme", t); } catch { /* ignore */ }
+  };
+
+  // First-login intro: remembered on this device (localStorage) and on the
+  // account (Supabase user metadata) so it doesn't repeat on other devices.
+  const dismissIntro = (withTour) => {
+    setIntroOpen(false);
+    try { localStorage.setItem(`wb-intro-seen:${userId}`, "1"); } catch { /* ignore */ }
+    Promise.resolve(supabaseClient.auth.updateUser({ data: { wb_intro_seen: true } })).catch(() => {});
+    if (withTour) setHelpOpen(true);
   };
 
   // lock background scroll while a sheet/modal is open
@@ -1791,8 +2129,22 @@ function Wishboard({ userId, userEmail }) {
     // purchased->wishlist, purchased->transcended, transcended->purchased: no popup, by design.
   };
 
-  // Drag-and-drop onto a tab header: same status transition + toast logic as
-  // the existing move buttons, just triggered by a drop instead of a click.
+  const handleMoveCustomTab = (id, tabId) => updateItem(id, { custom_tab_id: tabId });
+  const handleSaveNotes = (id, notes) => updateItem(id, { notes });
+  const handleSaveEdits = (id, patch) => updateItem(id, patch);
+
+  // Drag-and-drop onto any tab (built-in or custom): a drop moves the existing
+  // pin (never copies it) using the same move logic as the buttons and Move To.
+  const handleDropTo = (id, dropId) => {
+    const item = items.find((i) => i.id === id);
+    if (!item) return;
+    if ((item.custom_tab_id || item.status) === dropId) return; // already there
+    if (dropId === "wishlist" || dropId === "purchased" || dropId === "transcended") {
+      handleMoveStatus(id, dropId);
+    } else {
+      handleMoveCustomTab(id, dropId);
+    }
+  };
   const handleTabDragOver = (e, tabId) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
@@ -1801,16 +2153,12 @@ function Wishboard({ userId, userEmail }) {
   const handleTabDragLeave = (tabId) => {
     setDragOverTab((current) => (current === tabId ? null : current));
   };
-  const handleTabDrop = (e, status) => {
+  const handleTabDrop = (e, dropId) => {
     e.preventDefault();
     setDragOverTab(null);
     const id = e.dataTransfer.getData("text/plain");
-    if (id) handleMoveStatus(id, status);
+    if (id) handleDropTo(id, dropId);
   };
-
-  const handleMoveCustomTab = (id, tabId) => updateItem(id, { custom_tab_id: tabId });
-  const handleSaveNotes = (id, notes) => updateItem(id, { notes });
-  const handleSaveEdits = (id, patch) => updateItem(id, patch);
 
   const handleAddTab = async () => {
     const name = window.prompt("Name your new tab:");
@@ -1859,11 +2207,13 @@ function Wishboard({ userId, userEmail }) {
        : "\"All conditioned things are impermanent.\" \u2014 Dhammapada")
     : (activeCustomTab ? `Your "${activeCustomTab.name}" collection.` : "");
 
-  const emptyText = isBuiltIn
-    ? (tab === "wishlist" ? "Nothing pinned yet. Tap the + to add the first thing you're eyeing."
-       : tab === "purchased" ? "Nothing spent yet."
-       : "Nothing released yet.")
-    : "Nothing here yet.";
+  const emptyText = items.length === 0
+    ? EMPTY_ALL_PINS
+    : isBuiltIn
+      ? (tab === "wishlist" ? "Nothing pinned yet. Tap the + to add the first thing you're eyeing."
+         : tab === "purchased" ? "Nothing spent yet."
+         : "Nothing released yet.")
+      : "Nothing here yet.";
 
   const summaryLabel = isBuiltIn
     ? (tab === "wishlist" ? "TOTAL" : tab === "purchased" ? "SPENT" : "SAVED THROUGH DETACHMENT")
@@ -1889,6 +2239,16 @@ function Wishboard({ userId, userEmail }) {
           </div>
           <div className="wb-header-actions">
             <div className="wb-header-actions-row">
+              <button
+                className={`wb-help-btn ${helpOpen ? "active" : ""}`}
+                data-help-btn
+                type="button"
+                aria-label="Help"
+                title="Help"
+                onClick={() => setHelpOpen((o) => !o)}
+              >
+                ?
+              </button>
               <ThemeSwitcher theme={theme} onChange={setTheme} />
               <button className="wb-logout" onClick={() => supabaseClient.auth.signOut()}>
                 Log out
@@ -1901,7 +2261,8 @@ function Wishboard({ userId, userEmail }) {
 
       <div className="wb-tabs">
         <div
-          className={`wb-tab ${tab === "wishlist" ? "active-wishlist" : ""} ${dragOverTab === "wishlist" ? "wb-tab-dragover" : ""}`}
+          data-dropid="wishlist"
+          className={`wb-tab ${tab === "wishlist" ? "active-wishlist" : ""} ${dragOverTab === "wishlist" ? "wb-tab-dragover" : ""} ${isDragging ? "wb-tab-droptarget" : ""}`}
           onClick={() => handleTabChange("wishlist")}
           onDragOver={(e) => handleTabDragOver(e, "wishlist")}
           onDragLeave={() => handleTabDragLeave("wishlist")}
@@ -1910,7 +2271,8 @@ function Wishboard({ userId, userEmail }) {
           Wishlist <span className="wb-count">{wishlist.length}</span>
         </div>
         <div
-          className={`wb-tab ${tab === "purchased" ? "active-purchased" : ""} ${dragOverTab === "purchased" ? "wb-tab-dragover" : ""}`}
+          data-dropid="purchased"
+          className={`wb-tab ${tab === "purchased" ? "active-purchased" : ""} ${dragOverTab === "purchased" ? "wb-tab-dragover" : ""} ${isDragging ? "wb-tab-droptarget" : ""}`}
           onClick={() => handleTabChange("purchased")}
           onDragOver={(e) => handleTabDragOver(e, "purchased")}
           onDragLeave={() => handleTabDragLeave("purchased")}
@@ -1919,7 +2281,8 @@ function Wishboard({ userId, userEmail }) {
           Purchased <span className="wb-count">{purchased.length}</span>
         </div>
         <div
-          className={`wb-tab ${tab === "transcended" ? "active-transcended" : ""} ${dragOverTab === "transcended" ? "wb-tab-dragover" : ""}`}
+          data-dropid="transcended"
+          className={`wb-tab ${tab === "transcended" ? "active-transcended" : ""} ${dragOverTab === "transcended" ? "wb-tab-dragover" : ""} ${isDragging ? "wb-tab-droptarget" : ""}`}
           onClick={() => handleTabChange("transcended")}
           onDragOver={(e) => handleTabDragOver(e, "transcended")}
           onDragLeave={() => handleTabDragLeave("transcended")}
@@ -1931,7 +2294,15 @@ function Wishboard({ userId, userEmail }) {
           const count = items.filter((i) => i.custom_tab_id === ct.id).length;
           const active = tab === ct.id;
           return (
-            <div key={ct.id} className={`wb-tab ${active ? "active-custom" : ""}`} onClick={() => handleTabChange(ct.id)}>
+            <div
+              key={ct.id}
+              data-dropid={ct.id}
+              className={`wb-tab ${active ? "active-custom" : ""} ${dragOverTab === ct.id ? "wb-tab-dragover" : ""} ${isDragging ? "wb-tab-droptarget" : ""}`}
+              onClick={() => handleTabChange(ct.id)}
+              onDragOver={(e) => handleTabDragOver(e, ct.id)}
+              onDragLeave={() => handleTabDragLeave(ct.id)}
+              onDrop={(e) => handleTabDrop(e, ct.id)}
+            >
               {ct.name} <span className="wb-count">{count}</span>
               {active ? (
                 <button className="wb-tab-delete" onClick={(e) => { e.stopPropagation(); handleDeleteTab(ct.id); }} aria-label="Delete tab">
@@ -1941,8 +2312,8 @@ function Wishboard({ userId, userEmail }) {
             </div>
           );
         })}
-        <button className="wb-tab-add" onClick={handleAddTab} type="button" aria-label="Add custom tab">
-          <PlusIcon size={14} />
+        <button className="wb-tab-add" data-help="newtab" onClick={handleAddTab} type="button" aria-label="New tab">
+          <PlusIcon size={13} /> New tab
         </button>
       </div>
       <div className="wb-tabline" />
@@ -1958,8 +2329,19 @@ function Wishboard({ userId, userEmail }) {
         <div className="wb-empty">{emptyText}</div>
       ) : (
         <div className="wb-grid">
-          {visible.map((item) => (
-            <ItemCard key={item.id} item={item} onMove={handleMoveStatus} onDelete={deleteItem} onOpen={(i) => setOpenItemId(i.id)} theme={theme} />
+          {visible.map((item, idx) => (
+            <ItemCard
+              key={item.id}
+              item={item}
+              onMove={handleMoveStatus}
+              onDelete={deleteItem}
+              onOpen={(i) => setOpenItemId(i.id)}
+              theme={theme}
+              onDropTo={handleDropTo}
+              onDragState={setIsDragging}
+              onDragHover={setDragOverTab}
+              helpTarget={idx === 0}
+            />
           ))}
         </div>
       )}
@@ -1973,8 +2355,8 @@ function Wishboard({ userId, userEmail }) {
         </div>
       )}
 
-      <button className="wb-fab" onClick={() => setSheetOpen(true)} aria-label="Add item">
-        <PlusIcon size={26} />
+      <button className="wb-fab wb-fab-pill" data-help="addpin" onClick={() => setSheetOpen(true)} aria-label="Add pin">
+        <PlusIcon size={22} /> Add pin
       </button>
 
       <AddItemSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onAdd={handleAdd} draftKey={`wb-draft:${userId}`} tabs={customTabs} />
@@ -1995,6 +2377,11 @@ function Wishboard({ userId, userEmail }) {
         />
       ) : null}
 
+      {introOpen && !sheetOpen && !openItemId ? (
+        <IntroCard onDone={() => dismissIntro(false)} onTour={() => dismissIntro(true)} />
+      ) : null}
+      {helpOpen ? <HelpGuide onClose={() => setHelpOpen(false)} /> : null}
+
       <Footer theme={theme} />
     </div>
   );
@@ -2004,6 +2391,7 @@ function AuthScreen() {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -2065,13 +2453,24 @@ function AuthScreen() {
         </div>
         <div className="wb-field">
           <label>Password</label>
-          <input
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-          />
+          <div className="wb-pw-wrap">
+            <input
+              type={showPw ? "text" : "password"}
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
+            />
+            <button
+              type="button"
+              className="wb-pw-eye"
+              onClick={() => setShowPw((s) => !s)}
+              aria-label={showPw ? "Hide password" : "Show password"}
+              title={showPw ? "Hide password" : "Show password"}
+            >
+              {showPw ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+            </button>
+          </div>
         </div>
 
         {error ? <p className="wb-auth-error">{error}</p> : null}
@@ -2106,7 +2505,13 @@ function App() {
 
   if (!session) return <AuthScreen />;
 
-  return <Wishboard userId={session.user.id} userEmail={session.user.email} />;
+  return (
+    <Wishboard
+      userId={session.user.id}
+      userEmail={session.user.email}
+      introSeen={Boolean(session.user.user_metadata && session.user.user_metadata.wb_intro_seen)}
+    />
+  );
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
