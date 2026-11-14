@@ -595,6 +595,28 @@
   .wb-cropper-wrap { height: 300px; max-height: none; }
   .cropper-view-box { outline: 2px solid rgba(255,255,255,.95); }
   .cropper-face { background: transparent; }
+
+  .wb-analytics { margin: 24px 20px 110px; padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--card, rgba(255,255,255,.55)); }
+  .wb-analytics h2 { margin: 0 0 6px; font-size: 22px; }
+  .wb-analytics-intro { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+  .wb-analytics-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:10px; }
+  .wb-analytics-card { border:1px solid var(--line); border-radius:13px; padding:15px; min-width:0; }
+  .wb-analytics-card span { display:block; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.08em; margin-bottom:7px; }
+  .wb-analytics-card strong { font-size:23px; font-weight:600; }
+  .wb-analytics-note { color:var(--muted); font-size:12px; line-height:1.5; margin:16px 0 0; }
+  .wb-reflect-overlay { position:fixed; inset:0; z-index:1200; background:rgba(15,15,15,.48); display:flex; align-items:center; justify-content:center; padding:20px; }
+  .wb-reflect-card { width:min(440px,100%); border-radius:18px; padding:26px; background:var(--paper, #fff); color:var(--ink, #222); border:1px solid var(--line); box-shadow:0 18px 60px rgba(0,0,0,.2); }
+  .wb-reflect-eyebrow { font-size:10px; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; margin:0 0 12px; }
+  .wb-reflect-card h2 { font-family:inherit; font-size:25px; line-height:1.1; margin:0 0 12px; }
+  .wb-reflect-card p { font-size:14px; line-height:1.6; color:var(--muted); }
+  .wb-reflect-question { padding:13px 15px; border-radius:12px; background:rgba(127,127,127,.09); color:var(--ink, #222); margin:18px 0; font-size:14px; line-height:1.5; }
+  .wb-reflect-actions { display:flex; gap:9px; flex-wrap:wrap; margin-top:20px; }
+  .wb-reflect-actions button { border:1px solid var(--line); border-radius:999px; padding:11px 15px; font:inherit; cursor:pointer; }
+  .wb-reflect-continue { background:var(--ink, #222); color:var(--paper, #fff); border-color:var(--ink, #222)!important; }
+  .wb-auth-forgot { display:block; margin:10px 0 14px auto; border:0; background:transparent; color:var(--muted); text-decoration:underline; cursor:pointer; font:inherit; font-size:12px; }
+  .wb-tab-analytics { border:1px solid var(--line); border-radius:999px; padding:9px 13px; background:transparent; color:var(--ink, #222); cursor:pointer; font:inherit; font-size:12px; }
+  .wb-tab-analytics.active { background:var(--ink, #222); color:var(--paper, #fff); }
+
 </style>
 </head>
 <body>
@@ -974,7 +996,9 @@ function useWishboardData(userId) {
     if (error) {
       setItems(prevItems);
       alert("Couldn't save that change — please try again.");
+      return false;
     }
+    return true;
   }, [items]);
 
   const moveItem = useCallback(
@@ -1030,7 +1054,7 @@ function PriceTag({ value }) {
   return <div className="wb-price-tag">{currency(value)}</div>;
 }
 
-function ItemCard({ item, onMove, onDelete, onOpen, theme, onDropTo, onDragState, onDragHover, helpTarget }) {
+function ItemCard({ item, onMove, onDelete, onOpen, onCheckout, viewCount, theme, onDropTo, onDragState, onDragHover, helpTarget }) {
   const [imgError, setImgError] = useState(false);
   const [transcending, setTranscending] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -1180,7 +1204,7 @@ function ItemCard({ item, onMove, onDelete, onOpen, theme, onDropTo, onDragState
       <div className="wb-body">
         <p className="wb-item-title">{item.title}</p>
         {item.link ? (
-          <a className="wb-item-source" href={item.link} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+          <a className="wb-item-source" href={item.link} target="_blank" rel="noreferrer" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCheckout(item); }}>
             {hostnameOf(item.link) || "view item"}
           </a>
         ) : (
@@ -1271,13 +1295,11 @@ function EditPinFields({ item, onChange, tabs, target, onTarget }) {
         <input type="text" value={item.title || ""} onChange={(e) => onChange({ title: e.target.value })} />
       </div>
       <div className="wb-field">
-        <label>Photo</label>
         <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFile} />
         <button type="button" className="wb-photo-btn" onClick={() => fileRef.current && fileRef.current.click()}>
-          <UploadIcon size={14} /> {item.image ? "Replace photo" : "Upload photo"}
+          <UploadIcon size={14} /> {item.image ? "Replace" : "Add photo"}
         </button>
         {uploadError ? <p className="wb-auth-error" style={{ marginTop: 6, marginBottom: 0 }}>{uploadError}</p> : null}
-        {item.image ? <img className="wb-preview" src={item.image} alt="Preview" /> : null}
       </div>
       <div className="wb-field">
         <label>Notes</label>
@@ -1317,7 +1339,7 @@ function EditPinFields({ item, onChange, tabs, target, onTarget }) {
   );
 }
 
-function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustomTab, onDelete, onSaveNotes, onSaveEdits }) {
+function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustomTab, onDelete, onSaveNotes, onSaveEdits, onCheckout, viewCount }) {
   const [dragY, setDragY] = useState(0);
   const dragStartRef = useRef(null);
   const [editing, setEditing] = useState(false);
@@ -1437,8 +1459,9 @@ function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustom
             <>
               <h2 className="wb-detail-title">{item.title}</h2>
               <p className="wb-detail-price">{currency(item.price)}</p>
+              <p className="wb-analytics-note" style={{ margin: "-8px 0 14px" }}>{viewCount || 0} {viewCount === 1 ? "view" : "views"} on this pin</p>
               {item.link ? (
-                <a className="wb-item-source" href={item.link} target="_blank" rel="noreferrer" style={{ marginBottom: 16 }}>
+                <a className="wb-item-source" href={item.link} target="_blank" rel="noreferrer" style={{ marginBottom: 16 }} onClick={(e) => { e.preventDefault(); onCheckout(item); }}>
                   {hostnameOf(item.link) || "view item"}
                 </a>
               ) : null}
@@ -2057,6 +2080,10 @@ function Wishboard({ userId, userEmail, introSeen }) {
   const [tab, setTab] = useState("wishlist");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [openItemId, setOpenItemId] = useState(null);
+  const [reflectionItem, setReflectionItem] = useState(null);
+  const [activity, setActivity] = useState([]);
+  const [activityReady, setActivityReady] = useState(false);
+  const [activityError, setActivityError] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
   const [toastKey, setToastKey] = useState(0);
   const [sparkleKey, setSparkleKey] = useState(0);
@@ -2102,6 +2129,39 @@ function Wishboard({ userId, userEmail, introSeen }) {
 
   const showToast = (msg) => { setToastMsg(msg); setToastKey((k) => k + 1); };
 
+  // Private event history powers intentional-view counts and spending analytics.
+  useEffect(() => {
+    let cancelled = false;
+    if (!userId) return;
+    supabaseClient.from("item_activity").select("id,item_id,event_type,item_title,amount,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(2000)
+      .then(({ data, error }) => { if (!cancelled && !error && data) setActivity(data); if (!cancelled) { setActivityError(Boolean(error)); setActivityReady(true); } });
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  const logActivity = async (item, eventType) => {
+    if (!item || !userId) return;
+    const event = { user_id: userId, item_id: item.id, event_type: eventType, item_title: item.title || "Untitled", amount: Number(item.price) || 0 };
+    const { data, error } = await supabaseClient.from("item_activity").insert(event).select("id,item_id,event_type,item_title,amount,created_at").single();
+    if (!error && data) setActivity((prev) => [data, ...prev]);
+  };
+
+  const handleOpenItem = (item) => {
+    logActivity(item, "item_view");
+    setOpenItemId(item.id);
+  };
+
+  const handleCheckout = (item) => {
+    if (!item || !item.link) return;
+    logActivity(item, "checkout_intent");
+    setReflectionItem(item);
+  };
+
+  const continueToRetailer = () => {
+    const item = reflectionItem;
+    setReflectionItem(null);
+    if (item && item.link) window.open(item.link, "_blank", "noopener,noreferrer");
+  };
+
   const handleTabChange = (newTab) => {
     // plain tab-click view switching — no toast, ever
     setTab(newTab);
@@ -2112,7 +2172,8 @@ function Wishboard({ userId, userEmail, introSeen }) {
     const item = items.find((i) => i.id === id);
     const fromStatus = item ? item.status : null;
     const wasCustomTab = item ? Boolean(item.custom_tab_id) : false;
-    await moveItem(id, status);
+    const saved = await moveItem(id, status);
+    if (saved !== false && status === "purchased" && fromStatus !== "purchased" && item) logActivity(item, "purchase_confirmed");
 
     // Moving out of a custom tab into a built-in status isn't one of the
     // approved wishlist/purchased/transcended transitions — stay silent.
@@ -2191,17 +2252,28 @@ function Wishboard({ userId, userEmail, introSeen }) {
   const wishlistTotal = wishlist.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
   const purchasedTotal = purchased.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
   const transcendedTotal = transcended.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+  const purchaseEvents = activity.filter((e) => e.event_type === "purchase_confirmed");
+  const viewEvents = activity.filter((e) => e.event_type === "item_view");
+  const checkoutEvents = activity.filter((e) => e.event_type === "checkout_intent");
+  const now = Date.now();
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+  const spentToday = purchaseEvents.filter((e) => new Date(e.created_at).getTime() >= todayStart.getTime()).reduce((n,e) => n + (Number(e.amount)||0), 0);
+  const spent7d = purchaseEvents.filter((e) => now - new Date(e.created_at).getTime() <= 7*86400000).reduce((n,e) => n + (Number(e.amount)||0), 0);
+  const spentMonth = purchaseEvents.filter((e) => new Date(e.created_at).getTime() >= monthStart.getTime()).reduce((n,e) => n + (Number(e.amount)||0), 0);
+  const mostViewed = Object.values(viewEvents.reduce((acc,e) => { acc[e.item_id] = acc[e.item_id] || { title:e.item_title, count:0 }; acc[e.item_id].count++; return acc; }, {})).sort((a,b) => b.count-a.count)[0];
 
   const isBuiltIn = tab === "wishlist" || tab === "purchased" || tab === "transcended";
+  const isAnalytics = tab === "analytics";
   const activeCustomTab = !isBuiltIn ? customTabs.find((t) => t.id === tab) : null;
 
-  const visible = isBuiltIn
+  const visible = isAnalytics ? [] : isBuiltIn
     ? (tab === "wishlist" ? wishlist : tab === "purchased" ? purchased : transcended)
     : items.filter((i) => i.custom_tab_id === tab);
 
   const customTabTotal = !isBuiltIn ? visible.reduce((sum, i) => sum + (Number(i.price) || 0), 0) : 0;
 
-  const subtitle = isBuiltIn
+  const subtitle = isAnalytics ? "A clearer picture of what catches your eye." : isBuiltIn
     ? (tab === "wishlist" ? "Pin what you want. Watch what it costs."
        : tab === "purchased" ? "The desire has become possession."
        : "\"All conditioned things are impermanent.\" \u2014 Dhammapada")
@@ -2312,22 +2384,41 @@ function Wishboard({ userId, userEmail, introSeen }) {
             </div>
           );
         })}
+        <button className={`wb-tab-analytics ${tab === "analytics" ? "active" : ""}`} onClick={() => handleTabChange("analytics")} type="button">Insights</button>
         <button className="wb-tab-add" data-help="newtab" onClick={handleAddTab} type="button" aria-label="New tab">
           <PlusIcon size={13} /> New tab
         </button>
       </div>
       <div className="wb-tabline" />
 
-      {visible.length > 0 && (
+      {isAnalytics ? (
+        <section className="wb-analytics">
+          <h2>Your Wishboard, in perspective</h2>
+          <p className="wb-analytics-intro">A private snapshot of your activity. Purchases are counted when you mark a pin as Purchased.</p>
+          <div className="wb-analytics-grid">
+            <div className="wb-analytics-card"><span>Currently wanted</span><strong>{currency(wishlistTotal)}</strong></div>
+            <div className="wb-analytics-card"><span>Marked purchased</span><strong>{currency(purchaseEvents.reduce((n,e) => n + (Number(e.amount)||0), 0))}</strong></div>
+            <div className="wb-analytics-card"><span>Today</span><strong>{currency(spentToday)}</strong></div>
+            <div className="wb-analytics-card"><span>Last 7 days</span><strong>{currency(spent7d)}</strong></div>
+            <div className="wb-analytics-card"><span>This month</span><strong>{currency(spentMonth)}</strong></div>
+            <div className="wb-analytics-card"><span>Pin opens</span><strong>{viewEvents.length}</strong></div>
+            <div className="wb-analytics-card"><span>Retailer visits started</span><strong>{checkoutEvents.length}</strong></div>
+          </div>
+          <p className="wb-analytics-note">{mostViewed ? `Most opened: ${mostViewed.title} (${mostViewed.count} ${mostViewed.count === 1 ? "view" : "views"}).` : "Open a pin to begin building your activity history."} These insights start when you install this update; Wishboard cannot reconstruct older activity.</p>
+          {!activityReady ? <p className="wb-analytics-note">Loading your activity…</p> : activityError ? <p className="wb-analytics-note">Activity tracking needs its Supabase migration installed. Your pins remain safe; see the included setup instructions.</p> : null}
+        </section>
+      ) : null}
+
+      {!isAnalytics && visible.length > 0 && (
         <div className="wb-summary-sticky">
           <span className="wb-summary-label">{summaryLabel}</span>
           <span className={`wb-summary-total ${isBuiltIn ? tab : ""}`}>{currency(summaryTotal)}</span>
         </div>
       )}
 
-      {loaded && visible.length === 0 ? (
+      {!isAnalytics && loaded && visible.length === 0 ? (
         <div className="wb-empty">{emptyText}</div>
-      ) : (
+      ) : !isAnalytics ? (
         <div className="wb-grid">
           {visible.map((item, idx) => (
             <ItemCard
@@ -2335,7 +2426,9 @@ function Wishboard({ userId, userEmail, introSeen }) {
               item={item}
               onMove={handleMoveStatus}
               onDelete={deleteItem}
-              onOpen={(i) => setOpenItemId(i.id)}
+              onOpen={handleOpenItem}
+              onCheckout={handleCheckout}
+              viewCount={viewEvents.filter((e) => e.item_id === item.id).length}
               theme={theme}
               onDropTo={handleDropTo}
               onDragState={setIsDragging}
@@ -2344,9 +2437,9 @@ function Wishboard({ userId, userEmail, introSeen }) {
             />
           ))}
         </div>
-      )}
+      ) : null}
 
-      {visible.length > 0 && (
+      {!isAnalytics && visible.length > 0 && (
         <div className="wb-summary">
           <div className="wb-summary-row">
             <span className="wb-summary-label">{summaryLabel}</span>
@@ -2374,7 +2467,25 @@ function Wishboard({ userId, userEmail, introSeen }) {
           onDelete={deleteItem}
           onSaveNotes={handleSaveNotes}
           onSaveEdits={handleSaveEdits}
+          onCheckout={handleCheckout}
+          viewCount={viewEvents.filter((e) => e.item_id === openItem.id).length}
         />
+      ) : null}
+
+      {reflectionItem ? (
+        <div className="wb-reflect-overlay" role="dialog" aria-modal="true" aria-labelledby="wb-reflect-title" onClick={() => setReflectionItem(null)}>
+          <div className="wb-reflect-card" onClick={(e) => e.stopPropagation()}>
+            <p className="wb-reflect-eyebrow">A moment before you leave</p>
+            <h2 id="wb-reflect-title">Last Chance to Transcend</h2>
+            <p>You saved this because something about it caught your attention. Before you leave Wishboard, take a breath and check in with yourself.</p>
+            <div className="wb-reflect-question">Do I still want this at this price, and does it fit what matters to me right now?</div>
+            <p>No wrong answer. You can continue to the retailer whenever you're ready.</p>
+            <div className="wb-reflect-actions">
+              <button type="button" onClick={() => setReflectionItem(null)}>Stay on Wishboard</button>
+              <button type="button" className="wb-reflect-continue" onClick={continueToRetailer}>Continue to retailer</button>
+            </div>
+          </div>
+        </div>
       ) : null}
 
       {introOpen && !sheetOpen && !openItemId ? (
@@ -2399,12 +2510,16 @@ function AuthScreen() {
   const switchMode = (m) => { setMode(m); setError(""); setNotice(""); };
 
   const submit = async () => {
-    if (!email.trim() || !password || busy) return;
+    if (!email.trim() || (mode !== "reset" && !password) || busy) return;
     setBusy(true);
     setError("");
     setNotice("");
     try {
-      if (mode === "login") {
+      if (mode === "reset") {
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email.trim(), { redirectTo: window.location.origin + window.location.pathname });
+        if (error) throw error;
+        setNotice("If an account exists for that email, a password reset link is on its way.");
+      } else if (mode === "login") {
         const { error } = await supabaseClient.auth.signInWithPassword({
           email: email.trim(),
           password,
@@ -2451,7 +2566,7 @@ function AuthScreen() {
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
-        <div className="wb-field">
+        {mode !== "reset" ? <div className="wb-field">
           <label>Password</label>
           <div className="wb-pw-wrap">
             <input
@@ -2471,13 +2586,13 @@ function AuthScreen() {
               {showPw ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
             </button>
           </div>
-        </div>
+        </div> : null}
 
         {error ? <p className="wb-auth-error">{error}</p> : null}
         {notice ? <p className="wb-auth-notice">{notice}</p> : null}
 
-        <button className="wb-save-btn" disabled={busy || !email.trim() || !password} onClick={submit}>
-          {busy ? "Please wait…" : mode === "login" ? "Log in" : "Create account"}
+        <button className="wb-save-btn" disabled={busy || !email.trim() || (mode !== "reset" && !password)} onClick={submit}>
+          {busy ? "Please wait…" : mode === "login" ? "Log in" : mode === "reset" ? "Send reset link" : "Create account"}
         </button>
       </div>
     </div>
