@@ -639,6 +639,14 @@
   .wb-cart-item { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:8px 0; font-size:13px; }
   .wb-cart-item a { color:var(--ink); }
   .wb-cart-item button { border:0; background:transparent; color:var(--muted); text-decoration:underline; cursor:pointer; font:inherit; font-size:12px; }
+  .wb-main-nav-divider { width:1px; height:30px; background:var(--line); margin:0 5px; align-self:center; }
+  .wb-tab-analytics, .wb-tab-tool { background:var(--ink, #222); color:var(--paper, #fff); border-color:transparent; box-shadow:0 5px 14px rgba(20,18,14,.13); padding:11px 16px; }
+  .wb-tab-analytics.active, .wb-tab-tool.active { background:var(--plum, #60465f); color:#fff; box-shadow:0 0 0 2px var(--paper), 0 0 0 3px var(--plum); transform:none; }
+  .wb-cart-total { position:sticky; bottom:0; z-index:5; display:flex; justify-content:space-between; align-items:center; gap:12px; margin:16px -20px -20px; padding:15px 20px calc(15px + env(safe-area-inset-bottom)); background:var(--paper); border-top:1px solid var(--line); box-shadow:0 -8px 20px rgba(20,18,14,.07); }
+  .wb-cart-total strong { display:block; font:600 23px var(--font-display); font-variant-numeric:tabular-nums; }
+  .wb-cart-total small { display:block; color:var(--muted); font-size:11px; margin-top:2px; }
+  .wb-cart-total-label { color:var(--muted); font-size:10px; letter-spacing:.12em; font-weight:700; }
+  .wb-cart-panel { padding-bottom:20px; }
 
 
 
@@ -2292,6 +2300,10 @@ function Wishboard({ userId, userEmail, introSeen, demoMode=false, onExitDemo })
   const spentMonth = purchaseEvents.filter((e) => new Date(e.created_at).getTime() >= monthStart.getTime()).reduce((n,e) => n + (Number(e.amount)||0), 0);
   const mostViewed = Object.values(viewEvents.reduce((acc,e) => { acc[e.item_id] = acc[e.item_id] || { title:e.item_title, count:0 }; acc[e.item_id].count++; return acc; }, {})).sort((a,b) => b.count-a.count)[0];
 
+  const cartItems = cartIds.map((id) => items.find((item) => item.id === id)).filter(Boolean);
+  const cartTotal = cartItems.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
+  const cartUnpriced = cartItems.filter((item) => !(Number(item.price) > 0)).length;
+
   const isBuiltIn = tab === "wishlist" || tab === "purchased" || tab === "transcended";
   const isAnalytics = tab === "analytics";
   const isDiscover = tab === "discover";
@@ -2417,6 +2429,7 @@ function Wishboard({ userId, userEmail, introSeen, demoMode=false, onExitDemo })
             </div>
           );
         })}
+        <span className="wb-main-nav-divider" aria-hidden="true" />
         <button className={`wb-tab-analytics ${tab === "analytics" ? "active" : ""}`} onClick={() => handleTabChange("analytics")} type="button">Insights</button>
         <button className={`wb-tab-tool ${tab === "discover" ? "active" : ""}`} onClick={() => handleTabChange("discover")} type="button">Discover</button>
         <button className={`wb-tab-tool ${tab === "cart" ? "active" : ""}`} onClick={() => handleTabChange("cart")} type="button">Cart <span className="wb-count">{cartIds.length}</span></button>
@@ -2446,17 +2459,18 @@ function Wishboard({ userId, userEmail, introSeen, demoMode=false, onExitDemo })
       ) : null}
 
       {isCart ? (
-        <section className="wb-shop-panel">
+        <section className="wb-shop-panel wb-cart-panel">
           <h2>Your shopping cart</h2>
           <p>This is your Wishboard shopping list, grouped by retailer. It does not place orders or automatically add products to a retailer's private checkout cart; each retailer handles its own checkout.</p>
           {cartIds.length === 0 ? <p>Your cart is empty. Open a saved pin and choose <b>Add to Cart</b> to collect it here.</p> : null}
-          {Object.entries(cartIds.map((id) => items.find((item) => item.id === id)).filter(Boolean).reduce((groups, item) => { const retailer = hostnameOf(item.link || "") || "No retailer link"; (groups[retailer] ||= []).push(item); return groups; }, {})).map(([retailer, group]) => (
+          {Object.entries(cartItems.reduce((groups, item) => { const retailer = hostnameOf(item.link || "") || "No retailer link"; (groups[retailer] ||= []).push(item); return groups; }, {})).map(([retailer, group]) => (
             <div className="wb-cart-group" key={retailer}>
               <h3 style={{fontSize:14,margin:"0 0 6px"}}>{retailer}</h3>
               {group.map((item) => <div className="wb-cart-item" key={item.id}><span>{item.title} · {currency(item.price)}</span><span style={{display:"flex",gap:10,flexShrink:0}}>{item.link ? <a href={item.link} target="_blank" rel="noreferrer" onClick={(e) => { e.preventDefault(); handleCheckout(item); }}>Open product ↗</a> : null}<button type="button" onClick={() => removeFromCart(item.id)}>Remove</button></span></div>)}
               <p style={{margin:"6px 0 0",fontWeight:600}}>Group total: {currency(group.reduce((sum,item) => sum + (Number(item.price)||0),0))}</p>
             </div>
           ))}
+          {cartItems.length > 0 ? <div className="wb-cart-total"><div><span className="wb-cart-total-label">CART TOTAL</span><strong>{currency(cartTotal)}</strong><small>{cartItems.length} {cartItems.length === 1 ? "item" : "items"}{cartUnpriced ? ` · ${cartUnpriced} without a price, excluded` : " · before tax and shipping"}</small></div><span style={{fontSize:12,color:"var(--muted)",textAlign:"right"}}>Your planned<br/>shopping total</span></div> : null}
         </section>
       ) : null}
 
