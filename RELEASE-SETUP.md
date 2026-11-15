@@ -1,8 +1,9 @@
 # Wishboard first update — GitHub Pages release
 
-This package preserves the existing single-page Wishboard app and its three themes. It adds a private activity foundation, a purchase-reflection checkpoint, an Insights view, per-pin view counts, and password-reset access.
+This package preserves the existing single-page Wishboard app and its three themes. It adds a no-account public demo mode alongside the existing private account experience, plus a private activity foundation, purchase-reflection checkpoint, Insights view, per-pin view counts, password-reset access, rounded floating navigation, retailer discovery shortcuts, and a retailer-grouped Wishboard cart.
 
 ## What changed
+- **Public demo mode:** the login screen now offers Explore the demo without requiring an account. It opens a sample Wishboard with example pins and activity so visitors can try the core experience immediately. Demo edits are isolated in browser-local storage and never write to Supabase or modify a signed-in user's data. The demo banner includes Reset demo and Exit demo controls.
 - **Cleaner pin editing:** removed the duplicate photo preview from the edit form; the existing pin photo remains visible above, with one compact **Replace** button to choose a new image.
 
 - **Last Chance to Transcend:** clicking a saved product link opens a short, optional reflection checkpoint. The user can stay on Wishboard or continue to the retailer. It does not prevent purchasing.
@@ -10,7 +11,13 @@ This package preserves the existing single-page Wishboard app and its three them
 - **Pin views:** intentional opens are counted; the count appears in the pin detail.
 - **Purchase activity:** marking a pin Purchased records a dated amount/title snapshot. Existing item and tab records are not rewritten by the migration.
 - **Forgot password:** uses Supabase's password-reset email flow.
+- **Unified floating tabs:** Wishlist, Purchased, Transcended, custom tabs, Insights, Discover, and Cart use a consistent rounded, elevated treatment across all three themes.
+- **Discover:** search shortcuts open live search pages at Google Shopping, Amazon, Target, Walmart, Etsy, eBay, and Best Buy. Save a found product with Add pin and its product-page URL.
+- **Wishboard cart:** add a saved pin from its detail view; the cart groups saved items by retailer and provides product-page handoffs. Cart contents are stored locally in that browser/device.
 - **PWA cache:** service-worker cache version is bumped so installed clients fetch the new app files.
+
+## Demo mode and Supabase
+The public demo can be explored without running the activity migration. Real account activity and Insights still require the Supabase migration described below.
 
 ## Important: run the Supabase migration first
 
@@ -44,8 +51,9 @@ If your repository contains additional files not included in this package, do no
 - Test Forgot password using an email address on your account. Ensure the reset redirect URL is allowed in Supabase Auth URL Configuration.
 
 ## Notes and limitations
+- Demo data is sample data stored only in the visitor's browser. It is not a shared public sample account and does not sync between devices. Reset demo restores the sample content. Real personal data remains behind Supabase authentication.
 
 - Historical views and purchases cannot be reconstructed. Activity starts after this update and migration are installed.
 - “Purchase confirmed” means the user marked the pin Purchased in Wishboard. Wishboard does not verify an actual retailer transaction or connect to a bank.
-- Retailer links open the saved product page, not a unified checkout. Wishboard does not process payments.
+- Discover opens retailer search pages; it does not yet provide a live in-app product catalog or automatic product import. The Wishboard cart is a grouped shopping list, not a retailer checkout cart: retailer sites do not expose a universal add-to-cart/checkout API, so each retailer checkout remains separate. Cart contents are local to the current browser/device. Wishboard does not process payments.
 - The migration is additive and client-side events are append-only under the included RLS policies. Do not put a Supabase service-role key in this repository.

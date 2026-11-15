@@ -285,12 +285,14 @@
   .wb-theme-option:hover, .wb-theme-option.active { background: var(--paper); font-weight: 600; }
   .wb-theme-swatch { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0,0,0,.12); flex: none; }
 
-  .wb-tabs { display: flex; gap: 6px; margin: 22px 20px 0; flex-wrap: wrap; align-items: flex-end; }
+  .wb-tabs { display: flex; gap: 9px; margin: 22px 20px 8px; padding: 5px 2px 9px; flex-wrap: wrap; align-items: center; }
   .wb-tab {
-    padding: 10px 14px 12px; border-radius: var(--radius-tab) var(--radius-tab) 0 0; font-size: 13.5px; font-weight: 600;
-    cursor: pointer; border: 1px solid var(--line); border-bottom: none; background: #ECE8DF; color: var(--muted);
-    transition: background .15s, color .15s; position: relative;
+    padding: 10px 15px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--muted);
+    box-shadow: 0 4px 12px rgba(20,18,14,.08); transition: background .18s, color .18s, transform .18s, box-shadow .18s; position: relative;
   }
+  .wb-tab:hover { transform: translateY(-2px); box-shadow: 0 7px 16px rgba(20,18,14,.12); }
+  .wb-tab.active-wishlist, .wb-tab.active-purchased, .wb-tab.active-transcended, .wb-tab.active-custom { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(20,18,14,.14), 0 0 0 1px var(--line); }
   .wb-root[data-theme="absurdist"] .wb-tab { background: #E6E6E6; }
   .wb-root[data-theme="surreal"] .wb-tab { background: #F1E8D6; }
   .wb-tab .wb-count { margin-left: 6px; font-size: 11.5px; opacity: .65; }
@@ -308,10 +310,9 @@
     background: var(--card) !important;
   }
   .wb-tab-add {
-    padding: 10px 12px 12px; border-radius: var(--radius-tab) var(--radius-tab) 0 0; border: 1px dashed var(--line); border-bottom: none;
-    background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center;
+    padding: 10px 14px; border-radius: 999px; border: 1px dashed var(--line); background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap:5px; box-shadow:0 3px 9px rgba(20,18,14,.05);
   }
-  .wb-tabline { height: 1px; background: var(--line); margin: 0 20px; }
+  .wb-tabline { display:none; }
 
   .wb-summary-sticky {
     position: sticky; top: 0; z-index: 15; background: var(--paper);
@@ -614,9 +615,37 @@
   .wb-reflect-actions button { border:1px solid var(--line); border-radius:999px; padding:11px 15px; font:inherit; cursor:pointer; }
   .wb-reflect-continue { background:var(--ink, #222); color:var(--paper, #fff); border-color:var(--ink, #222)!important; }
   .wb-auth-forgot { display:block; margin:10px 0 14px auto; border:0; background:transparent; color:var(--muted); text-decoration:underline; cursor:pointer; font:inherit; font-size:12px; }
-  .wb-tab-analytics { border:1px solid var(--line); border-radius:999px; padding:9px 13px; background:transparent; color:var(--ink, #222); cursor:pointer; font:inherit; font-size:12px; }
-  .wb-tab-analytics.active { background:var(--ink, #222); color:var(--paper, #fff); }
+  .wb-tab-analytics, .wb-tab-tool { border:1px solid var(--line); border-radius:999px; padding:10px 15px; background:var(--card); color:var(--muted); cursor:pointer; font:inherit; font-size:13px; font-weight:600; box-shadow:0 4px 12px rgba(20,18,14,.08); transition:transform .18s, box-shadow .18s, background .18s; }
+  .wb-tab-analytics.active, .wb-tab-tool.active { background:var(--ink, #222); color:var(--paper, #fff); transform:translateY(-3px); box-shadow:0 8px 18px rgba(20,18,14,.16); }
+  .wb-tab-tool:hover, .wb-tab-analytics:hover { transform:translateY(-2px); }
+  .wb-root .wb-tabs .wb-tab, .wb-root[data-theme="surreal"] .wb-tabs .wb-tab.active-wishlist, .wb-root[data-theme="surreal"] .wb-tabs .wb-tab.active-purchased, .wb-root[data-theme="surreal"] .wb-tabs .wb-tab.active-transcended, .wb-root[data-theme="surreal"] .wb-tabs .wb-tab.active-custom { border-radius:999px !important; border-bottom:1px solid var(--line); }
+  .wb-root[data-theme="surreal"] .wb-tabs .wb-tab.active-wishlist { background:var(--card); }
+  .wb-root[data-theme="surreal"] .wb-tabs .wb-tab.active-purchased { background:var(--card); }
+  .wb-root[data-theme="surreal"] .wb-tabs .wb-tab.active-transcended { background:var(--card); }
+  .wb-root[data-theme="surreal"] .wb-tabs .wb-tab.active-custom { background:var(--card); }
+  .wb-tabs .wb-tab.active-wishlist { box-shadow:0 8px 18px rgba(20,18,14,.14), 0 -3px 0 var(--plum) inset !important; }
+  .wb-tabs .wb-tab.active-purchased { box-shadow:0 8px 18px rgba(20,18,14,.14), 0 -3px 0 var(--sage) inset !important; }
+  .wb-tabs .wb-tab.active-transcended { box-shadow:0 8px 18px rgba(20,18,14,.14), 0 -3px 0 var(--zen) inset !important; }
+  .wb-tabs .wb-tab.active-custom { box-shadow:0 8px 18px rgba(20,18,14,.14), 0 -3px 0 var(--gold) inset !important; }
+  .wb-shop-panel { margin:18px 20px; padding:20px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius-card); box-shadow:var(--shadow-card); }
+  .wb-shop-panel h2 { margin:0 0 7px; font:600 22px var(--font-display); }
+  .wb-shop-panel p { color:var(--muted); font-size:13px; line-height:1.55; }
+  .wb-shop-search { display:flex; gap:8px; flex-wrap:wrap; margin:16px 0; }
+  .wb-shop-search input { flex:1 1 220px; min-width:0; padding:12px 14px; border:1px solid var(--line); border-radius:999px; background:var(--paper); color:var(--ink); font:inherit; }
+  .wb-shop-search button, .wb-shop-action { border:0; border-radius:999px; padding:11px 16px; background:var(--plum); color:white; cursor:pointer; font:600 13px var(--font-body); }
+  .wb-store-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(115px,1fr)); gap:9px; }
+  .wb-store-link { display:block; padding:12px; border:1px solid var(--line); border-radius:12px; color:var(--ink); text-decoration:none; background:var(--paper); font-size:13px; font-weight:600; }
+  .wb-cart-group { border-top:1px solid var(--line); padding:13px 0; }
+  .wb-cart-item { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:8px 0; font-size:13px; }
+  .wb-cart-item a { color:var(--ink); }
+  .wb-cart-item button { border:0; background:transparent; color:var(--muted); text-decoration:underline; cursor:pointer; font:inherit; font-size:12px; }
 
+
+
+.wb-demo-banner{position:sticky;top:0;z-index:1000;display:flex;align-items:center;justify-content:center;gap:14px;padding:8px 14px;background:rgba(28,28,28,.92);color:#fff;font:600 11px/1.3 inherit;letter-spacing:.04em;text-align:center;backdrop-filter:blur(12px)}
+.wb-demo-banner button{border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff;border-radius:99px;padding:5px 11px;font:inherit;cursor:pointer}
+.wb-demo-divider{display:flex;align-items:center;gap:12px;margin:16px 0 10px;color:var(--muted,#888);font-size:10px;letter-spacing:.14em}.wb-demo-divider:before,.wb-demo-divider:after{content:"";height:1px;background:currentColor;opacity:.25;flex:1}
+.wb-demo-entry{width:100%;border:1px solid currentColor;border-radius:999px;background:transparent;color:inherit;padding:12px 18px;font:inherit;font-weight:650;cursor:pointer;display:flex;justify-content:center;gap:9px}.wb-demo-caption{text-align:center;font-size:11px;opacity:.65;margin:9px 0 0}
 </style>
 </head>
 <body>
@@ -639,7 +668,11 @@ const { useState, useEffect, useRef, useCallback } = React;
 const SUPABASE_URL = "https://lmtbauyoljswgllakdzl.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_zfrAYBrFS-q3NGK6gC_W7Q_qZTZqUWO";
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Keep the public demo usable even if the optional Supabase CDN is unavailable.
+// Account sign-in requires Supabase; demo data is browser-local and does not.
+const supabaseClient = window.supabase?.createClient
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
 
 const currency = (n) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
@@ -948,106 +981,67 @@ function SparkleBurst({ onDone }) {
   );
 }
 
-function useWishboardData(userId) {
+const DEMO_ITEMS = [
+  { id:"demo-1", user_id:"demo", title:"Everyday Film Camera", price:89, image:"https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=900", link:"https://www.ebay.com/sch/i.html?_nkw=film+camera", status:"wishlist", added_at:"2026-11-10T15:00:00.000Z", notes:"A little camera for documenting ordinary days." },
+  { id:"demo-2", user_id:"demo", title:"Sculptural Ceramic Vase", price:46, image:"https://images.unsplash.com/photo-1578500494198-246f612d3b3d?w=900", link:"https://www.etsy.com/search?q=ceramic+vase", status:"wishlist", added_at:"2026-11-09T15:00:00.000Z", notes:"Love the shape and imperfect finish." },
+  { id:"demo-3", user_id:"demo", title:"Leather Everyday Tote", price:118, image:"https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=900", link:"https://www.google.com/search?tbm=shop&q=leather+tote", status:"wishlist", added_at:"2026-11-08T15:00:00.000Z", notes:"Comparing sizes before deciding." },
+  { id:"demo-4", user_id:"demo", title:"Designing with Type", price:32, image:"https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=900", link:"https://www.google.com/search?tbm=shop&q=designing+with+type+book", status:"purchased", added_at:"2026-10-28T15:00:00.000Z", purchased_at:"2026-11-02T15:00:00.000Z", notes:"A reference book I wanted to keep nearby." },
+  { id:"demo-5", user_id:"demo", title:"Minimal Table Lamp", price:74, image:"https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=900", link:"https://www.google.com/search?tbm=shop&q=minimal+table+lamp", status:"transcended", added_at:"2026-10-20T15:00:00.000Z", notes:"Waited a week and realized I didn't need another lamp." }
+];
+const DEMO_ACTIVITY = [
+  {id:"demo-activity-1",user_id:"demo",item_id:"demo-1",event_type:"item_view",item_title:"Everyday Film Camera",amount:89,created_at:"2026-11-14T14:20:00.000Z"},
+  {id:"demo-activity-2",user_id:"demo",item_id:"demo-2",event_type:"item_view",item_title:"Sculptural Ceramic Vase",amount:46,created_at:"2026-11-13T17:10:00.000Z"},
+  {id:"demo-activity-3",user_id:"demo",item_id:"demo-4",event_type:"purchase_confirmed",item_title:"Designing with Type",amount:32,created_at:"2026-11-02T15:00:00.000Z"},
+  {id:"demo-activity-4",user_id:"demo",item_id:"demo-3",event_type:"checkout_intent",item_title:"Leather Everyday Tote",amount:118,created_at:"2026-11-12T12:30:00.000Z"},
+  {id:"demo-activity-5",user_id:"demo",item_id:"demo-1",event_type:"item_view",item_title:"Everyday Film Camera",amount:89,created_at:"2026-11-11T12:30:00.000Z"}
+];
+function readDemo(key, fallback) { try { const raw=localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
+function writeDemo(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {} }
+
+function useWishboardData(userId, demoMode=false) {
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
-
   useEffect(() => {
+    if (demoMode) { setItems(readDemo("wb-demo-items", DEMO_ITEMS)); setLoaded(true); return; }
     if (!userId) { setItems([]); setLoaded(true); return; }
-    let cancelled = false;
-    setLoaded(false);
-    supabaseClient
-      .from("items")
-      .select("*")
-      .eq("user_id", userId)
-      .order("added_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (!error && data) setItems(data);
-        setLoaded(true);
-      });
+    let cancelled = false; setLoaded(false);
+    supabaseClient.from("items").select("*").eq("user_id", userId).order("added_at", { ascending: false }).then(({ data, error }) => {
+      if (cancelled) return; if (!error && data) setItems(data); setLoaded(true);
+    });
     return () => { cancelled = true; };
-  }, [userId]);
-
+  }, [userId, demoMode]);
   const addItem = useCallback(async (item) => {
-    const { data, error } = await supabaseClient
-      .from("items")
-      .insert({ ...item, user_id: userId })
-      .select()
-      .single();
-    if (error) throw error;
-    setItems((prev) => [data, ...prev]);
-  }, [userId]);
-
+    if (demoMode) { const data={...item,id:`demo-${Date.now()}`,user_id:"demo",added_at:new Date().toISOString()}; setItems(prev=>{const next=[data,...prev];writeDemo("wb-demo-items",next);return next;}); return data; }
+    const { data, error } = await supabaseClient.from("items").insert({ ...item, user_id: userId }).select().single();
+    if (error) throw error; setItems((prev) => [data, ...prev]);
+  }, [userId, demoMode]);
   const deleteItem = useCallback(async (id) => {
-    const prevItems = items;
-    setItems((prev) => prev.filter((i) => i.id !== id)); // optimistic
-    const { error } = await supabaseClient.from("items").delete().eq("id", id);
-    if (error) {
-      setItems(prevItems); // roll back if the server delete actually failed
-      alert("Couldn't delete that item — please try again.");
-    }
-  }, [items]);
-
+    const prevItems=items; setItems(prev=>{const next=prev.filter(i=>i.id!==id);if(demoMode)writeDemo("wb-demo-items",next);return next;});
+    if (demoMode) return;
+    const {error}=await supabaseClient.from("items").delete().eq("id",id); if(error){setItems(prevItems);alert("Couldn't delete that item — please try again.");}
+  }, [items,demoMode]);
   const updateItem = useCallback(async (id, patch) => {
-    const prevItems = items;
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i))); // optimistic
-    const { error } = await supabaseClient.from("items").update(patch).eq("id", id);
-    if (error) {
-      setItems(prevItems);
-      alert("Couldn't save that change — please try again.");
-      return false;
-    }
-    return true;
-  }, [items]);
-
-  const moveItem = useCallback(
-    (id, status) => {
-      const patch = {
-        status,
-        custom_tab_id: null,
-        purchased_at: status === "purchased" ? new Date().toISOString() : null,
-      };
-      return updateItem(id, patch);
-    },
-    [updateItem]
-  );
-
-  return { items, addItem, deleteItem, moveItem, updateItem, loaded };
+    const prevItems=items; setItems(prev=>{const next=prev.map(i=>i.id===id?{...i,...patch}:i);if(demoMode)writeDemo("wb-demo-items",next);return next;});
+    if(demoMode) return true;
+    const {error}=await supabaseClient.from("items").update(patch).eq("id",id); if(error){setItems(prevItems);alert("Couldn't save that change — please try again.");return false;} return true;
+  }, [items,demoMode]);
+  const moveItem = useCallback((id,status)=>updateItem(id,{status,custom_tab_id:null,purchased_at:status==="purchased"?new Date().toISOString():null}),[updateItem]);
+  return {items,addItem,deleteItem,moveItem,updateItem,loaded};
 }
 
-function useCustomTabs(userId) {
-  const [tabs, setTabs] = useState([]);
-
-  useEffect(() => {
-    if (!userId) { setTabs([]); return; }
-    supabaseClient
-      .from("tabs")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: true })
-      .then(({ data, error }) => {
-        if (!error && data) setTabs(data);
-      });
-  }, [userId]);
-
-  const addTab = useCallback(async (name) => {
-    const { data, error } = await supabaseClient
-      .from("tabs")
-      .insert({ user_id: userId, name })
-      .select()
-      .single();
-    if (error) throw error;
-    setTabs((prev) => [...prev, data]);
-    return data;
-  }, [userId]);
-
-  const deleteTab = useCallback(async (id) => {
-    setTabs((prev) => prev.filter((t) => t.id !== id));
-    await supabaseClient.from("tabs").delete().eq("id", id);
-  }, []);
-
-  return { tabs, addTab, deleteTab };
+function useCustomTabs(userId, demoMode=false) {
+  const [tabs,setTabs]=useState([]);
+  useEffect(()=>{
+    if(demoMode){setTabs(readDemo("wb-demo-tabs",[]));return;}
+    if(!userId){setTabs([]);return;}
+    supabaseClient.from("tabs").select("*").eq("user_id",userId).order("created_at",{ascending:true}).then(({data,error})=>{if(!error&&data)setTabs(data);});
+  },[userId,demoMode]);
+  const addTab=useCallback(async(name)=>{
+    if(demoMode){const data={id:`demo-tab-${Date.now()}`,user_id:"demo",name,created_at:new Date().toISOString()};setTabs(prev=>{const next=[...prev,data];writeDemo("wb-demo-tabs",next);return next;});return data;}
+    const {data,error}=await supabaseClient.from("tabs").insert({user_id:userId,name}).select().single();if(error)throw error;setTabs(prev=>[...prev,data]);return data;
+  },[userId,demoMode]);
+  const deleteTab=useCallback(async(id)=>{setTabs(prev=>{const next=prev.filter(t=>t.id!==id);if(demoMode)writeDemo("wb-demo-tabs",next);return next;});if(!demoMode)await supabaseClient.from("tabs").delete().eq("id",id);},[demoMode]);
+  return {tabs,addTab,deleteTab};
 }
 
 function PriceTag({ value }) {
@@ -1339,7 +1333,7 @@ function EditPinFields({ item, onChange, tabs, target, onTarget }) {
   );
 }
 
-function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustomTab, onDelete, onSaveNotes, onSaveEdits, onCheckout, viewCount }) {
+function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustomTab, onDelete, onSaveNotes, onSaveEdits, onCheckout, onAddToCart, inCart, viewCount }) {
   const [dragY, setDragY] = useState(0);
   const dragStartRef = useRef(null);
   const [editing, setEditing] = useState(false);
@@ -1469,6 +1463,7 @@ function PinDetailModal({ item, tabs, theme, onClose, onMoveStatus, onMoveCustom
                 <p style={{ fontSize: 14, lineHeight: 1.5, margin: "0 0 16px", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{item.notes}</p>
               ) : null}
               <div className="wb-detail-actions">
+                <button className="wb-detail-edit-btn" onClick={() => onAddToCart(item)} type="button">{inCart ? "In Cart ✓" : "Add to Cart"}</button>
                 <button className="wb-detail-edit-btn" onClick={startEditing} type="button">
                   <EditIcon size={14} /> Edit Pin
                 </button>
@@ -2074,13 +2069,16 @@ function IntroCard({ onDone, onTour }) {
 
 const EMPTY_ALL_PINS = "Nothing pinned yet. Tap the + to add the first thing you\u2019re eyeing.";
 
-function Wishboard({ userId, userEmail, introSeen }) {
-  const { items, addItem, deleteItem, moveItem, updateItem, loaded } = useWishboardData(userId);
-  const { tabs: customTabs, addTab, deleteTab } = useCustomTabs(userId);
+function Wishboard({ userId, userEmail, introSeen, demoMode=false, onExitDemo }) {
+  const { items, addItem, deleteItem, moveItem, updateItem, loaded } = useWishboardData(userId, demoMode);
+  const { tabs: customTabs, addTab, deleteTab } = useCustomTabs(userId, demoMode);
   const [tab, setTab] = useState("wishlist");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [openItemId, setOpenItemId] = useState(null);
   const [reflectionItem, setReflectionItem] = useState(null);
+  const [shopQuery, setShopQuery] = useState("");
+  const [shopStore, setShopStore] = useState("Amazon");
+  const [cartIds, setCartIds] = useState(() => { try { return JSON.parse(localStorage.getItem(`wb-cart:${userId}`) || "[]"); } catch { return []; } });
   const [activity, setActivity] = useState([]);
   const [activityReady, setActivityReady] = useState(false);
   const [activityError, setActivityError] = useState(false);
@@ -2113,7 +2111,7 @@ function Wishboard({ userId, userEmail, introSeen }) {
   const dismissIntro = (withTour) => {
     setIntroOpen(false);
     try { localStorage.setItem(`wb-intro-seen:${userId}`, "1"); } catch { /* ignore */ }
-    Promise.resolve(supabaseClient.auth.updateUser({ data: { wb_intro_seen: true } })).catch(() => {});
+    if (!demoMode) Promise.resolve(supabaseClient.auth.updateUser({ data: { wb_intro_seen: true } })).catch(() => {});
     if (withTour) setHelpOpen(true);
   };
 
@@ -2133,14 +2131,16 @@ function Wishboard({ userId, userEmail, introSeen }) {
   useEffect(() => {
     let cancelled = false;
     if (!userId) return;
+    if (demoMode) { setActivity(readDemo("wb-demo-activity", DEMO_ACTIVITY)); setActivityReady(true); return () => { cancelled = true; }; }
     supabaseClient.from("item_activity").select("id,item_id,event_type,item_title,amount,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(2000)
       .then(({ data, error }) => { if (!cancelled && !error && data) setActivity(data); if (!cancelled) { setActivityError(Boolean(error)); setActivityReady(true); } });
     return () => { cancelled = true; };
-  }, [userId]);
+  }, [userId, demoMode]);
 
   const logActivity = async (item, eventType) => {
     if (!item || !userId) return;
-    const event = { user_id: userId, item_id: item.id, event_type: eventType, item_title: item.title || "Untitled", amount: Number(item.price) || 0 };
+    const event = { id:`demo-event-${Date.now()}-${Math.random().toString(16).slice(2)}`, user_id:userId, item_id:item.id, event_type:eventType, item_title:item.title || "Untitled", amount:Number(item.price)||0, created_at:new Date().toISOString() };
+    if (demoMode) { setActivity(prev=>{const next=[event,...prev];writeDemo("wb-demo-activity",next);return next;}); return; }
     const { data, error } = await supabaseClient.from("item_activity").insert(event).select("id,item_id,event_type,item_title,amount,created_at").single();
     if (!error && data) setActivity((prev) => [data, ...prev]);
   };
@@ -2165,6 +2165,35 @@ function Wishboard({ userId, userEmail, introSeen }) {
   const handleTabChange = (newTab) => {
     // plain tab-click view switching — no toast, ever
     setTab(newTab);
+  };
+
+  const addToCart = (item) => {
+    if (!item) return;
+    setCartIds((prev) => {
+      const next = prev.includes(item.id) ? prev : [...prev, item.id];
+      try { localStorage.setItem(`wb-cart:${userId}`, JSON.stringify(next)); } catch (_) {}
+      return next;
+    });
+    showToast("Added to your Wishboard cart");
+  };
+  const removeFromCart = (id) => setCartIds((prev) => {
+    const next = prev.filter((x) => x !== id);
+    try { localStorage.setItem(`wb-cart:${userId}`, JSON.stringify(next)); } catch (_) {}
+    return next;
+  });
+  const storeSearchUrls = {
+    Amazon: (q) => `https://www.amazon.com/s?k=${encodeURIComponent(q)}`,
+    Target: (q) => `https://www.target.com/s?searchTerm=${encodeURIComponent(q)}`,
+    Walmart: (q) => `https://www.walmart.com/search?q=${encodeURIComponent(q)}`,
+    Etsy: (q) => `https://www.etsy.com/search?q=${encodeURIComponent(q)}`,
+    eBay: (q) => `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(q)}`,
+    "Best Buy": (q) => `https://www.bestbuy.com/site/searchpage.jsp?st=${encodeURIComponent(q)}`,
+    "Google Shopping": (q) => `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(q)}`,
+  };
+  const searchStore = () => {
+    const q = shopQuery.trim();
+    if (!q) return;
+    window.open(storeSearchUrls[shopStore](q), "_blank", "noopener,noreferrer");
   };
 
   // Toasts fire ONLY for these exact status transitions; every other move is silent.
@@ -2265,15 +2294,18 @@ function Wishboard({ userId, userEmail, introSeen }) {
 
   const isBuiltIn = tab === "wishlist" || tab === "purchased" || tab === "transcended";
   const isAnalytics = tab === "analytics";
-  const activeCustomTab = !isBuiltIn ? customTabs.find((t) => t.id === tab) : null;
+  const isDiscover = tab === "discover";
+  const isCart = tab === "cart";
+  const isToolView = isAnalytics || isDiscover || isCart;
+  const activeCustomTab = !isBuiltIn && !isToolView ? customTabs.find((t) => t.id === tab) : null;
 
-  const visible = isAnalytics ? [] : isBuiltIn
+  const visible = isToolView ? [] : isBuiltIn
     ? (tab === "wishlist" ? wishlist : tab === "purchased" ? purchased : transcended)
     : items.filter((i) => i.custom_tab_id === tab);
 
   const customTabTotal = !isBuiltIn ? visible.reduce((sum, i) => sum + (Number(i.price) || 0), 0) : 0;
 
-  const subtitle = isAnalytics ? "A clearer picture of what catches your eye." : isBuiltIn
+  const subtitle = isAnalytics ? "A clearer picture of what catches your eye." : isDiscover ? "Find something worth saving." : isCart ? "A considered list of things you're thinking about buying." : isBuiltIn
     ? (tab === "wishlist" ? "Pin what you want. Watch what it costs."
        : tab === "purchased" ? "The desire has become possession."
        : "\"All conditioned things are impermanent.\" \u2014 Dhammapada")
@@ -2298,6 +2330,7 @@ function Wishboard({ userId, userEmail, introSeen }) {
 
   return (
     <div className="wb-root" data-theme={theme}>
+      {demoMode ? <div className="wb-demo-banner"><span>DEMO MODE · Your changes are saved only in this browser.</span><button type="button" onClick={() => { ["wb-demo-items","wb-demo-tabs","wb-demo-activity","wb-cart:demo"].forEach(k => localStorage.removeItem(k)); window.location.reload(); }}>Reset demo</button><button type="button" onClick={onExitDemo}>Exit demo</button></div> : null}
       {theme === "absurdist" ? <Ticker /> : null}
       <div className="wb-header">
         <div className="wb-header-top">
@@ -2322,7 +2355,7 @@ function Wishboard({ userId, userEmail, introSeen }) {
                 ?
               </button>
               <ThemeSwitcher theme={theme} onChange={setTheme} />
-              <button className="wb-logout" onClick={() => supabaseClient.auth.signOut()}>
+              <button className="wb-logout" onClick={() => demoMode ? onExitDemo() : supabaseClient.auth.signOut()}>
                 Log out
               </button>
             </div>
@@ -2385,11 +2418,47 @@ function Wishboard({ userId, userEmail, introSeen }) {
           );
         })}
         <button className={`wb-tab-analytics ${tab === "analytics" ? "active" : ""}`} onClick={() => handleTabChange("analytics")} type="button">Insights</button>
+        <button className={`wb-tab-tool ${tab === "discover" ? "active" : ""}`} onClick={() => handleTabChange("discover")} type="button">Discover</button>
+        <button className={`wb-tab-tool ${tab === "cart" ? "active" : ""}`} onClick={() => handleTabChange("cart")} type="button">Cart <span className="wb-count">{cartIds.length}</span></button>
         <button className="wb-tab-add" data-help="newtab" onClick={handleAddTab} type="button" aria-label="New tab">
           <PlusIcon size={13} /> New tab
         </button>
       </div>
       <div className="wb-tabline" />
+
+      {isDiscover ? (
+        <section className="wb-shop-panel">
+          <h2>Discover something</h2>
+          <p>Search a retailer, explore its products, then save anything you like to Wishboard using <b>Add pin</b>. Retailer search opens in a new tab; Wishboard does not scrape or rank live retailer catalogs.</p>
+          <div className="wb-shop-search">
+            <input value={shopQuery} onChange={(e) => setShopQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") searchStore(); }} placeholder="What are you looking for?" aria-label="Product search" />
+            <select value={shopStore} onChange={(e) => setShopStore(e.target.value)} aria-label="Choose retailer" style={{padding:"10px 12px",borderRadius:999,border:"1px solid var(--line)",background:"var(--paper)",color:"var(--ink)"}}>
+              {Object.keys(storeSearchUrls).map((name) => <option key={name} value={name}>{name}</option>)}
+            </select>
+            <button type="button" onClick={searchStore}>Search retailer ↗</button>
+          </div>
+          <div className="wb-store-grid">
+            {Object.keys(storeSearchUrls).map((name) => <a className="wb-store-link" key={name} href={storeSearchUrls[name](shopQuery || "") } target="_blank" rel="noreferrer">{name} ↗</a>)}
+          </div>
+          <p className="wb-analytics-note">When you find a product, copy its product-page link into Add pin. Wishboard can then keep its image, price, notes, and link together in your collection.</p>
+          <button className="wb-shop-action" type="button" onClick={() => setSheetOpen(true)}>＋ Save a product</button>
+        </section>
+      ) : null}
+
+      {isCart ? (
+        <section className="wb-shop-panel">
+          <h2>Your shopping cart</h2>
+          <p>This is your Wishboard shopping list, grouped by retailer. It does not place orders or automatically add products to a retailer's private checkout cart; each retailer handles its own checkout.</p>
+          {cartIds.length === 0 ? <p>Your cart is empty. Open a saved pin and choose <b>Add to Cart</b> to collect it here.</p> : null}
+          {Object.entries(cartIds.map((id) => items.find((item) => item.id === id)).filter(Boolean).reduce((groups, item) => { const retailer = hostnameOf(item.link || "") || "No retailer link"; (groups[retailer] ||= []).push(item); return groups; }, {})).map(([retailer, group]) => (
+            <div className="wb-cart-group" key={retailer}>
+              <h3 style={{fontSize:14,margin:"0 0 6px"}}>{retailer}</h3>
+              {group.map((item) => <div className="wb-cart-item" key={item.id}><span>{item.title} · {currency(item.price)}</span><span style={{display:"flex",gap:10,flexShrink:0}}>{item.link ? <a href={item.link} target="_blank" rel="noreferrer" onClick={(e) => { e.preventDefault(); handleCheckout(item); }}>Open product ↗</a> : null}<button type="button" onClick={() => removeFromCart(item.id)}>Remove</button></span></div>)}
+              <p style={{margin:"6px 0 0",fontWeight:600}}>Group total: {currency(group.reduce((sum,item) => sum + (Number(item.price)||0),0))}</p>
+            </div>
+          ))}
+        </section>
+      ) : null}
 
       {isAnalytics ? (
         <section className="wb-analytics">
@@ -2409,16 +2478,16 @@ function Wishboard({ userId, userEmail, introSeen }) {
         </section>
       ) : null}
 
-      {!isAnalytics && visible.length > 0 && (
+      {!isToolView && visible.length > 0 && (
         <div className="wb-summary-sticky">
           <span className="wb-summary-label">{summaryLabel}</span>
           <span className={`wb-summary-total ${isBuiltIn ? tab : ""}`}>{currency(summaryTotal)}</span>
         </div>
       )}
 
-      {!isAnalytics && loaded && visible.length === 0 ? (
+      {!isToolView && loaded && visible.length === 0 ? (
         <div className="wb-empty">{emptyText}</div>
-      ) : !isAnalytics ? (
+      ) : !isToolView ? (
         <div className="wb-grid">
           {visible.map((item, idx) => (
             <ItemCard
@@ -2439,7 +2508,7 @@ function Wishboard({ userId, userEmail, introSeen }) {
         </div>
       ) : null}
 
-      {!isAnalytics && visible.length > 0 && (
+      {!isToolView && visible.length > 0 && (
         <div className="wb-summary">
           <div className="wb-summary-row">
             <span className="wb-summary-label">{summaryLabel}</span>
@@ -2448,9 +2517,9 @@ function Wishboard({ userId, userEmail, introSeen }) {
         </div>
       )}
 
-      <button className="wb-fab wb-fab-pill" data-help="addpin" onClick={() => setSheetOpen(true)} aria-label="Add pin">
+      {!isCart && !isAnalytics ? <button className="wb-fab wb-fab-pill" data-help="addpin" onClick={() => setSheetOpen(true)} aria-label="Add pin">
         <PlusIcon size={22} /> Add pin
-      </button>
+      </button> : null}
 
       <AddItemSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onAdd={handleAdd} draftKey={`wb-draft:${userId}`} tabs={customTabs} />
       <Toast key={toastKey} message={toastMsg} onDone={() => setToastMsg("")} />
@@ -2468,6 +2537,8 @@ function Wishboard({ userId, userEmail, introSeen }) {
           onSaveNotes={handleSaveNotes}
           onSaveEdits={handleSaveEdits}
           onCheckout={handleCheckout}
+          onAddToCart={addToCart}
+          inCart={cartIds.includes(openItem.id)}
           viewCount={viewEvents.filter((e) => e.item_id === openItem.id).length}
         />
       ) : null}
@@ -2498,7 +2569,7 @@ function Wishboard({ userId, userEmail, introSeen }) {
   );
 }
 
-function AuthScreen() {
+function AuthScreen({ onDemo }) {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -2515,6 +2586,7 @@ function AuthScreen() {
     setError("");
     setNotice("");
     try {
+      if (!supabaseClient) throw new Error("Account sign-in is temporarily unavailable. You can still explore the demo below.");
       if (mode === "reset") {
         const { error } = await supabaseClient.auth.resetPasswordForEmail(email.trim(), { redirectTo: window.location.origin + window.location.pathname });
         if (error) throw error;
@@ -2594,6 +2666,9 @@ function AuthScreen() {
         <button className="wb-save-btn" disabled={busy || !email.trim() || (mode !== "reset" && !password)} onClick={submit}>
           {busy ? "Please wait…" : mode === "login" ? "Log in" : mode === "reset" ? "Send reset link" : "Create account"}
         </button>
+        <div className="wb-demo-divider"><span>OR</span></div>
+        <button className="wb-demo-entry" type="button" onClick={onDemo}>Explore the demo <span>↗</span></button>
+        <p className="wb-demo-caption">Take a look around. No account or shopping connection required.</p>
       </div>
     </div>
   );
@@ -2601,14 +2676,19 @@ function AuthScreen() {
 
 function App() {
   const [session, setSession] = useState(undefined); // undefined = checking, null = signed out
+  const [demoMode, setDemoMode] = useState(false);
 
   useEffect(() => {
-    supabaseClient.auth.getSession().then(({ data }) => setSession(data.session));
+    if (!supabaseClient) { setSession(null); return; }
+    let active = true;
+    supabaseClient.auth.getSession().then(({ data }) => { if (active) setSession(data.session); }).catch(() => { if (active) setSession(null); });
     const { data: listener } = supabaseClient.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
-    return () => listener.subscription.unsubscribe();
+    return () => { active = false; listener.subscription.unsubscribe(); };
   }, []);
+
+  if (demoMode) return <Wishboard userId="demo" userEmail="Demo visitor" introSeen={true} demoMode={true} onExitDemo={() => setDemoMode(false)} />;
 
   if (session === undefined) {
     return (
@@ -2618,7 +2698,7 @@ function App() {
     );
   }
 
-  if (!session) return <AuthScreen />;
+  if (!session) return <AuthScreen onDemo={() => setDemoMode(true)} />;
 
   return (
     <Wishboard
