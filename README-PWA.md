@@ -70,3 +70,6 @@ If you change `index.html` or the icons after deploying, bump
 `CACHE_VERSION` at the top of `sw.js` (e.g. `"v1"` → `"v2"`). That forces
 installed copies to fetch the new files instead of serving the old cached
 ones.
+
+
+The current release links `manifest.json` from the page and registers `sw.js` automatically on HTTPS. The app shell is cached for repeat/offline launch after a successful first visit. Remote account features still require an internet connection.

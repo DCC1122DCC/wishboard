@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Wishboard — Save Anything",
+  "version": "1.0.0",
+  "description": "Save a product or page to your Wishboard from almost any store.",
+  "permissions": ["contextMenus", "activeTab", "scripting", "tabs"],
+  "host_permissions": ["https://dcc1122dcc.github.io/*"],
+  "background": { "service_worker": "background.js" },
+  "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" }
+}

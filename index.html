@@ -6,6 +6,12 @@
 <link rel="apple-touch-icon" href="icons/plswork.png">
 <meta property="og:image" content="icons/plswork.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#F6F3EC" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Wishboard" />
+<meta name="description" content="A thoughtful place to save what you love, organize what you want, and understand your shopping habits." />
+<link rel="manifest" href="manifest.json" />
 <title>Wishboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,600&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Baloo+2:wght@500;600;700&family=Archivo+Black&family=Unbounded:wght@500;700&display=swap" rel="stylesheet" />
@@ -662,7 +668,7 @@
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.0"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.3/cropper.min.js"></script>
 
 <script type="text/babel" data-presets="react">
@@ -679,12 +685,17 @@ const SUPABASE_ANON_KEY = "sb_publishable_zfrAYBrFS-q3NGK6gC_W7Q_qZTZqUWO";
 // Keep the public demo usable even if the optional Supabase CDN is unavailable.
 // Account sign-in requires Supabase; demo data is browser-local and does not.
 const supabaseClient = window.supabase?.createClient
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { experimental: { passkey: true } } })
   : null;
 
+const numericPrice = (value) => {
+  if (typeof value === "number") return Number.isFinite(value) && value >= 0 ? value : 0;
+  const parsed = Number(String(value ?? "").replace(/[^0-9.-]/g, ""));
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+};
 const currency = (n) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
-    Number.isFinite(n) ? n : 0
+    numericPrice(n)
   );
 
 const hostnameOf = (url) => {
@@ -2082,11 +2093,33 @@ function Wishboard({ userId, userEmail, introSeen, demoMode=false, onExitDemo })
   const { tabs: customTabs, addTab, deleteTab } = useCustomTabs(userId, demoMode);
   const [tab, setTab] = useState("wishlist");
   const [sheetOpen, setSheetOpen] = useState(false);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("wb-pending-save");
+      if (!raw) return;
+      const pending = JSON.parse(raw);
+      if (!pending || !pending.url) return;
+      const draftKey = `wb-draft:${userId}`;
+      localStorage.setItem(draftKey, JSON.stringify({
+        title: pending.title || "", price: pending.price || "", link: pending.url,
+        notes: pending.source ? `Saved from ${pending.source}` : "",
+        imgMode: "url", imageUrl: pending.image || "", uploadedImage: "",
+        pinTarget: "wishlist", mode: "link"
+      }));
+      localStorage.removeItem("wb-pending-save");
+      setSheetOpen(true);
+      setToastMsg("Product ready to save — review the details first.");
+      setToastKey(k => k + 1);
+    } catch (err) { console.warn("Could not prepare saved product.", err); }
+  }, [userId]);
   const [openItemId, setOpenItemId] = useState(null);
   const [reflectionItem, setReflectionItem] = useState(null);
   const [shopQuery, setShopQuery] = useState("");
   const [shopStore, setShopStore] = useState("Amazon");
   const [cartIds, setCartIds] = useState(() => { try { return JSON.parse(localStorage.getItem(`wb-cart:${userId}`) || "[]"); } catch { return []; } });
+  const [cartSyncStatus, setCartSyncStatus] = useState(demoMode ? "Demo cart · saved on this device" : "Checking account sync…");
+  const cartTouchedRef = useRef(false);
+  const cartSyncQueueRef = useRef(Promise.resolve());
   const [activity, setActivity] = useState([]);
   const [activityReady, setActivityReady] = useState(false);
   const [activityError, setActivityError] = useState(false);
@@ -2097,6 +2130,65 @@ function Wishboard({ userId, userEmail, introSeen, demoMode=false, onExitDemo })
   const [dragOverTab, setDragOverTab] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [passkeySetupBusy, setPasskeySetupBusy] = useState(false);
+  const [passkeyNotice, setPasskeyNotice] = useState("");
+
+  // Keep the cart immediately available locally, while syncing signed-in users'
+  // cart IDs through Supabase user metadata so the list follows their account
+  // across browsers/devices. Demo carts remain isolated to this browser.
+  useEffect(() => {
+    if (demoMode) { setCartSyncStatus("Demo cart · saved on this device"); return; }
+    let active = true;
+    (async () => {
+      try {
+        const { data, error } = await supabaseClient.auth.getUser();
+        if (error) throw error;
+        const cloudIds = data?.user?.user_metadata?.wb_cart_ids;
+        if (Array.isArray(cloudIds)) {
+          if (active && !cartTouchedRef.current) {
+            const cleanIds = cloudIds.filter(id => typeof id === "string").slice(0, 500);
+            setCartIds(cleanIds);
+            try { localStorage.setItem(`wb-cart:${userId}`, JSON.stringify(cleanIds)); } catch (_) {}
+          }
+          if (active) setCartSyncStatus("Cart synced to your account");
+        } else {
+          const localIds = (() => { try { const value=JSON.parse(localStorage.getItem(`wb-cart:${userId}`)||"[]"); return Array.isArray(value)?value.filter(id=>typeof id==="string").slice(0,500):[]; } catch (_) { return []; } })();
+          if (localIds.length && !cartTouchedRef.current) {
+            const { error: saveError } = await supabaseClient.auth.updateUser({ data: { wb_cart_ids: localIds } });
+            if (saveError) throw saveError;
+          }
+          if (active) setCartSyncStatus("Cart synced to your account");
+        }
+      } catch (err) {
+        if (active) setCartSyncStatus("Saved on this device · account sync unavailable");
+        console.warn("Wishboard cart account sync unavailable.", err);
+      }
+    })();
+    return () => { active = false; };
+  }, [userId, demoMode]);
+
+  const persistCartIds = (next) => {
+    cartTouchedRef.current = true;
+    setCartIds(next);
+    try { localStorage.setItem(`wb-cart:${userId}`, JSON.stringify(next)); } catch (_) {}
+    if (!demoMode && supabaseClient) {
+      cartSyncQueueRef.current = cartSyncQueueRef.current.catch(() => {}).then(async () => {
+        const { error } = await supabaseClient.auth.updateUser({ data: { wb_cart_ids: next } });
+        if (error) throw error;
+        setCartSyncStatus("Cart synced to your account");
+      }).catch(() => setCartSyncStatus("Saved on this device · account sync unavailable"));
+    }
+  };
+
+  const setupPasskey = async () => {
+    if (demoMode || passkeySetupBusy) return;
+    setPasskeyNotice("");
+    if (!window.isSecureContext || !window.PublicKeyCredential || !navigator.credentials) { setPasskeyNotice("Passkeys need a supported browser on a secure connection (HTTPS)."); return; }
+    setPasskeySetupBusy(true);
+    try { const { data, error } = await supabaseClient.auth.registerPasskey(); if (error) throw error; setPasskeyNotice("Passkey added to this account. You can use it the next time you sign in."); }
+    catch (err) { setPasskeyNotice(err.message || "Passkey setup could not be completed."); }
+    finally { setPasskeySetupBusy(false); }
+  };
   const [introOpen, setIntroOpen] = useState(() => {
     if (introSeen) return false;
     try { return !localStorage.getItem(`wb-intro-seen:${userId}`); } catch { return true; }
@@ -2177,18 +2269,10 @@ function Wishboard({ userId, userEmail, introSeen, demoMode=false, onExitDemo })
 
   const addToCart = (item) => {
     if (!item) return;
-    setCartIds((prev) => {
-      const next = prev.includes(item.id) ? prev : [...prev, item.id];
-      try { localStorage.setItem(`wb-cart:${userId}`, JSON.stringify(next)); } catch (_) {}
-      return next;
-    });
+    if (!cartIds.includes(item.id)) persistCartIds([...cartIds, item.id]);
     showToast("Added to your Wishboard cart");
   };
-  const removeFromCart = (id) => setCartIds((prev) => {
-    const next = prev.filter((x) => x !== id);
-    try { localStorage.setItem(`wb-cart:${userId}`, JSON.stringify(next)); } catch (_) {}
-    return next;
-  });
+  const removeFromCart = (id) => persistCartIds(cartIds.filter((x) => x !== id));
   const storeSearchUrls = {
     Amazon: (q) => `https://www.amazon.com/s?k=${encodeURIComponent(q)}`,
     Target: (q) => `https://www.target.com/s?searchTerm=${encodeURIComponent(q)}`,
@@ -2301,8 +2385,8 @@ function Wishboard({ userId, userEmail, introSeen, demoMode=false, onExitDemo })
   const mostViewed = Object.values(viewEvents.reduce((acc,e) => { acc[e.item_id] = acc[e.item_id] || { title:e.item_title, count:0 }; acc[e.item_id].count++; return acc; }, {})).sort((a,b) => b.count-a.count)[0];
 
   const cartItems = cartIds.map((id) => items.find((item) => item.id === id)).filter(Boolean);
-  const cartTotal = cartItems.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
-  const cartUnpriced = cartItems.filter((item) => !(Number(item.price) > 0)).length;
+  const cartTotal = cartItems.reduce((sum, item) => sum + numericPrice(item.price), 0);
+  const cartUnpriced = cartItems.filter((item) => !numericPrice(item.price)).length;
 
   const isBuiltIn = tab === "wishlist" || tab === "purchased" || tab === "transcended";
   const isAnalytics = tab === "analytics";
@@ -2367,10 +2451,12 @@ function Wishboard({ userId, userEmail, introSeen, demoMode=false, onExitDemo })
                 ?
               </button>
               <ThemeSwitcher theme={theme} onChange={setTheme} />
+              {!demoMode ? <button className="wb-logout" type="button" onClick={setupPasskey} disabled={passkeySetupBusy}>{passkeySetupBusy ? "Setting up…" : "Add passkey"}</button> : null}
               <button className="wb-logout" onClick={() => demoMode ? onExitDemo() : supabaseClient.auth.signOut()}>
                 Log out
               </button>
             </div>
+            {passkeyNotice ? <p className="wb-header-meta" role="status" style={{maxWidth:260, color:"var(--muted)"}}>{passkeyNotice}</p> : null}
             <HeaderMeta userId={userId} />
           </div>
         </div>
@@ -2462,6 +2548,7 @@ function Wishboard({ userId, userEmail, introSeen, demoMode=false, onExitDemo })
         <section className="wb-shop-panel wb-cart-panel">
           <h2>Your shopping cart</h2>
           <p>This is your Wishboard shopping list, grouped by retailer. It does not place orders or automatically add products to a retailer's private checkout cart; each retailer handles its own checkout.</p>
+          <p className="wb-header-meta" role="status" aria-live="polite">{cartSyncStatus}</p>
           {cartIds.length === 0 ? <p>Your cart is empty. Open a saved pin and choose <b>Add to Cart</b> to collect it here.</p> : null}
           {Object.entries(cartItems.reduce((groups, item) => { const retailer = hostnameOf(item.link || "") || "No retailer link"; (groups[retailer] ||= []).push(item); return groups; }, {})).map(([retailer, group]) => (
             <div className="wb-cart-group" key={retailer}>
@@ -2591,6 +2678,18 @@ function AuthScreen({ onDemo }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
+
+  const usePasskey = async () => {
+    if (passkeyBusy) return;
+    setError(""); setNotice("");
+    if (!supabaseClient) { setError("Passkey sign-in is unavailable while account services are offline."); return; }
+    if (!window.isSecureContext || !window.PublicKeyCredential || !navigator.credentials) { setError("This browser or device does not support passkeys here. Try an updated browser on HTTPS."); return; }
+    setPasskeyBusy(true);
+    try { const { error } = await supabaseClient.auth.signInWithPasskey(); if (error) throw error; }
+    catch (err) { setError(err.message || "Passkey sign-in could not be completed."); }
+    finally { setPasskeyBusy(false); }
+  };
 
   const switchMode = (m) => { setMode(m); setError(""); setNotice(""); };
 
@@ -2680,6 +2779,10 @@ function AuthScreen({ onDemo }) {
         <button className="wb-save-btn" disabled={busy || !email.trim() || (mode !== "reset" && !password)} onClick={submit}>
           {busy ? "Please wait…" : mode === "login" ? "Log in" : mode === "reset" ? "Send reset link" : "Create account"}
         </button>
+        <button className="wb-demo-entry" type="button" onClick={usePasskey} disabled={passkeyBusy} style={{marginTop:10}}>
+          {passkeyBusy ? "Waiting for your device…" : "Sign in with a passkey"} <span>⌁</span>
+        </button>
+        <p className="wb-demo-caption">Use Touch ID, Face ID, Windows Hello, or your device PIN when supported.</p>
         <div className="wb-demo-divider"><span>OR</span></div>
         <button className="wb-demo-entry" type="button" onClick={onDemo}>Explore the demo <span>↗</span></button>
         <p className="wb-demo-caption">Take a look around. No account or shopping connection required.</p>
@@ -2691,6 +2794,31 @@ function AuthScreen({ onDemo }) {
 function App() {
   const [session, setSession] = useState(undefined); // undefined = checking, null = signed out
   const [demoMode, setDemoMode] = useState(false);
+
+  // Universal-save handoff: the optional browser extension opens Wishboard with
+  // a small, URL-encoded product card. Keep it locally until the user is ready
+  // to save, including when they need to sign in first.
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const raw = params.get("wb_save");
+      if (!raw) return;
+      const payload = JSON.parse(raw);
+      if (payload && typeof payload === "object" && payload.url) {
+        localStorage.setItem("wb-pending-save", JSON.stringify({
+          title: String(payload.title || "").slice(0, 240),
+          url: String(payload.url || "").slice(0, 2048),
+          image: String(payload.image || "").slice(0, 2048),
+          price: String(payload.price || "").replace(/[^0-9.]/g, "").slice(0, 16),
+          source: String(payload.source || "Browser extension").slice(0, 100),
+          receivedAt: Date.now()
+        }));
+      }
+      params.delete("wb_save");
+      const clean = window.location.pathname + (params.toString() ? `?${params}` : "") + window.location.hash;
+      window.history.replaceState({}, "", clean);
+    } catch (err) { console.warn("Wishboard save handoff could not be read.", err); }
+  }, []);
 
   useEffect(() => {
     if (!supabaseClient) { setSession(null); return; }
@@ -2724,6 +2852,16 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+// Progressive Web App support: installability and app-shell offline caching.
+// This is optional; a service-worker failure must never block the website.
+if ("serviceWorker" in navigator && window.location.protocol === "https:") {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch((error) => {
+      console.warn("Wishboard offline support could not be registered.", error);
+    });
+  });
+}
 </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 // Wishboard service worker
 // Bump CACHE_VERSION whenever index.html or the icons change so clients
 // pick up the new files instead of stale cached ones.
-const CACHE_VERSION = "v6"
+const CACHE_VERSION = "v9"
 const APP_CACHE = `wishboard-app-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `wishboard-runtime-${CACHE_VERSION}`;
 
